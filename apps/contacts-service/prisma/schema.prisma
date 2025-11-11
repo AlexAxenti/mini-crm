@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  contacts  Contact[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?  @unique
+  company   String?
+  title     String?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  notes     Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, name])     // sort by name
+  @@index([userId, updatedAt])// sort by date
+}
+
+model Note {
+  id        String  @id @default(uuid())
+  title     String
+  body      String
+
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+  @@index([contactId, updatedAt])// sort by date
+}
