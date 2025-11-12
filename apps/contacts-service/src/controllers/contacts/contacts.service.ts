@@ -3,9 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { ContactsRepository } from './contacts.repository';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
-import { ContactResponseDto } from './dto/get-contact-response.dto';
-import { CreateContactDto } from './dto/create-contact.dto';
-import { UpdateContactDto } from './dto/update-contact.dto';
+import { ContactResponseDto } from './dto/contact-response.dto';
+import { CreateContactDto } from './dto/create-contact-body.dto';
+import { UpdateContactDto } from './dto/update-contact-body.dto';
 
 @Injectable()
 export class ContactsService {
