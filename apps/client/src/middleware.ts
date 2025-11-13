@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { protectRoutes } from "./lib/middleware/protectRoutes";
 
 export async function middleware(request: NextRequest) {
   // 1. Refresh auth session and get user
