@@ -1,52 +1,73 @@
-// Mock data matching your Prisma schema
-const mockContacts = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 (555) 123-4567",
-    company: "Acme Corp",
-    title: "CEO",
-    updatedAt: new Date("2025-11-10"),
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1 (555) 234-5678",
-    company: "Tech Solutions",
-    title: "CTO",
-    updatedAt: new Date("2025-11-11"),
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    phone: "+1 (555) 345-6789",
-    company: "Marketing Inc",
-    title: "Marketing Director",
-    updatedAt: new Date("2025-11-09"),
-  },
-  {
-    id: "4",
-    name: "Alice Williams",
-    email: "alice@example.com",
-    phone: "+1 (555) 456-7890",
-    company: "Design Studio",
-    title: "Lead Designer",
-    updatedAt: new Date("2025-11-12"),
-  },
-];
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ContactResponseDto, CreateContactDto } from "@/app/api/contacts/dto";
+import { ContactModal } from "@/components/ContactModal";
 
 export default function ContactsPage() {
+  const router = useRouter();
+  const [contacts, setContacts] = useState<ContactResponseDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchContacts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/contacts");
+      const data: ContactResponseDto[] = await res.json();
+      console.log("Fetched contacts:", data);
+      setContacts(data);
+    } catch (error) {
+      console.error("Failed to fetch contacts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const handleCreateContact = async (data: CreateContactDto) => {
+    const res = await fetch("/api/contacts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to create contact");
+    }
+
+    // Refresh the list
+    await fetchContacts();
+  };
+
+  const handleRowClick = (contactId: string) => {
+    router.push(`/contacts/${contactId}`);
+  };
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold">Contacts</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
           Add Contact
         </button>
       </div>
+
+      {loading && <div className="text-center py-4">Loading...</div>}
+
+      <ContactModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateContact}
+        title="Create Contact"
+        submitText="Create"
+      />
 
       <div className="bg-bg border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
         <table className="w-full">
@@ -73,9 +94,10 @@ export default function ContactsPage() {
             </tr>
           </thead>
           <tbody>
-            {mockContacts.map((contact) => (
+            {contacts.map((contact) => (
               <tr
                 key={contact.id}
+                onClick={() => handleRowClick(contact.id)}
                 className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer"
               >
                 <td className="px-4 py-3 font-medium">{contact.name}</td>
@@ -84,7 +106,7 @@ export default function ContactsPage() {
                 <td className="px-4 py-3 text-sm">{contact.company}</td>
                 <td className="px-4 py-3 text-sm">{contact.title}</td>
                 <td className="px-4 py-3 text-sm">
-                  {contact.updatedAt.toLocaleDateString()}
+                  {new Date(contact.updatedAt).toLocaleDateString()}
                 </td>
               </tr>
             ))}
@@ -92,7 +114,7 @@ export default function ContactsPage() {
         </table>
       </div>
 
-      {mockContacts.length === 0 && (
+      {contacts.length === 0 && !loading && (
         <div className="text-center py-12 text-gray-500">
           No contacts yet. Click &quot;Add Contact&quot; to get started.
         </div>
