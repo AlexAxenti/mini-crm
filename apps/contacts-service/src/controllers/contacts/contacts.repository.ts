@@ -7,35 +7,51 @@ export class ContactsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findMany(
+    userId: string,
     where: Prisma.ContactWhereInput,
     orderBy: Prisma.ContactOrderByWithRelationInput,
   ) {
     return this.prisma.contact.findMany({
-      where,
+      where: { ...where, userId },
       orderBy,
     });
   }
 
-  async findById(id: string) {
+  async findById(userId: string, id: string) {
     return this.prisma.contact.findUnique({
-      where: { id },
+      where: { id, userId },
     });
   }
 
-  async create(data: Prisma.ContactCreateInput) {
+  async create(userId: string, data: Prisma.ContactCreateInput) {
     return this.prisma.contact.create({
-      data,
+      data: { ...data, user: { connect: { id: userId } } },
     });
   }
 
-  async update(id: string, data: Prisma.ContactUpdateInput) {
+  async update(userId: string, id: string, data: Prisma.ContactUpdateInput) {
+    // First check if contact exists and belongs to user
+    const contact = await this.findById(userId, id);
+    if (!contact) {
+      return null;
+    }
+
     return this.prisma.contact.update({
-      where: { id },
+      where: { id, userId },
       data,
     });
   }
 
-  async delete(id: string) {
+  async delete(userId: string, id: string) {
+    // First check if contact exists and belongs to user
+    const contact = await this.findById(userId, id);
+    if (!contact) {
+      return null;
+    }
+
+    await this.prisma.note.deleteMany({
+      where: { contactId: id },
+    });
     return this.prisma.contact.delete({
       where: { id },
     });

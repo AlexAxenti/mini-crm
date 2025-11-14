@@ -7,6 +7,7 @@ import {
   Query,
   Body,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
@@ -15,19 +16,26 @@ import { UpdateNoteDto } from './dto/update-note-body.dto';
 import { NotesService } from './notes.service';
 import { UuidParam } from '../../util/parse-uuid-param';
 import { Prisma } from '@prisma/client';
+import { AuthorizedRequest } from '../../types/authorized-request';
 
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get()
-  async getNotes(@Query() query: GetNotesQueryDto): Promise<NoteResponseDto[]> {
-    return this.notesService.getNotes(query);
+  async getNotes(
+    @Req() req: AuthorizedRequest,
+    @Query() query: GetNotesQueryDto,
+  ): Promise<NoteResponseDto[]> {
+    return this.notesService.getNotes(req.userId, query);
   }
 
   @Get(':id')
-  async getNote(@UuidParam('id') id: string): Promise<NoteResponseDto> {
-    const note = await this.notesService.getNote(id);
+  async getNote(
+    @Req() req: AuthorizedRequest,
+    @UuidParam('id') id: string,
+  ): Promise<NoteResponseDto> {
+    const note = await this.notesService.getNote(req.userId, id);
     if (!note) {
       throw new NotFoundException(`Note with ID ${id} not found`);
     }
@@ -36,11 +44,12 @@ export class NotesController {
 
   @Post(':contactId')
   async createNote(
+    @Req() req: AuthorizedRequest,
     @UuidParam('contactId') contactId: string,
     @Body() dto: CreateNoteDto,
   ): Promise<NoteResponseDto> {
     try {
-      return await this.notesService.createNote(contactId, dto);
+      return await this.notesService.createNote(req.userId, contactId, dto);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -54,34 +63,26 @@ export class NotesController {
 
   @Patch(':id')
   async updateNote(
+    @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
     @Body() dto: UpdateNoteDto,
   ): Promise<NoteResponseDto> {
-    try {
-      return await this.notesService.updateNote(id, dto);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Note with ID ${id} not found`);
-      }
-      throw error;
+    const note = await this.notesService.updateNote(req.userId, id, dto);
+    if (!note) {
+      throw new NotFoundException(`Note with ID ${id} not found`);
     }
+    return note;
   }
 
   @Delete(':id')
-  async deleteNote(@UuidParam('id') id: string): Promise<NoteResponseDto> {
-    try {
-      return await this.notesService.deleteNote(id);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Note with ID ${id} not found`);
-      }
-      throw error;
+  async deleteNote(
+    @Req() req: AuthorizedRequest,
+    @UuidParam('id') id: string,
+  ): Promise<NoteResponseDto> {
+    const note = await this.notesService.deleteNote(req.userId, id);
+    if (!note) {
+      throw new NotFoundException(`Note with ID ${id} not found`);
     }
+    return note;
   }
 }

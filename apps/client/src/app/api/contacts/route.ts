@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { proxy } from "../proxy";
+import { proxy } from "@/lib/api/proxy";
 
 // GET /api/contacts - List all contacts
 export async function GET(request: NextRequest) {

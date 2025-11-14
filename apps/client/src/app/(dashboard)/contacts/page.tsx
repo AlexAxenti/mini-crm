@@ -94,22 +94,23 @@ export default function ContactsPage() {
             </tr>
           </thead>
           <tbody>
-            {contacts.map((contact) => (
-              <tr
-                key={contact.id}
-                onClick={() => handleRowClick(contact.id)}
-                className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer"
-              >
-                <td className="px-4 py-3 font-medium">{contact.name}</td>
-                <td className="px-4 py-3 text-sm">{contact.email}</td>
-                <td className="px-4 py-3 text-sm">{contact.phone}</td>
-                <td className="px-4 py-3 text-sm">{contact.company}</td>
-                <td className="px-4 py-3 text-sm">{contact.title}</td>
-                <td className="px-4 py-3 text-sm">
-                  {new Date(contact.updatedAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
+            {contacts?.length > 0 &&
+              contacts.map((contact) => (
+                <tr
+                  key={contact.id}
+                  onClick={() => handleRowClick(contact.id)}
+                  className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer"
+                >
+                  <td className="px-4 py-3 font-medium">{contact.name}</td>
+                  <td className="px-4 py-3 text-sm">{contact.email}</td>
+                  <td className="px-4 py-3 text-sm">{contact.phone}</td>
+                  <td className="px-4 py-3 text-sm">{contact.company}</td>
+                  <td className="px-4 py-3 text-sm">{contact.title}</td>
+                  <td className="px-4 py-3 text-sm">
+                    {new Date(contact.updatedAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

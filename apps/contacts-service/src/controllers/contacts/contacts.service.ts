@@ -11,7 +11,10 @@ import { UpdateContactDto } from './dto/update-contact-body.dto';
 export class ContactsService {
   constructor(private readonly contactsRepository: ContactsRepository) {}
 
-  async getContacts(query: GetContactsQueryDto): Promise<ContactResponseDto[]> {
+  async getContacts(
+    userId: string,
+    query: GetContactsQueryDto,
+  ): Promise<ContactResponseDto[]> {
     const { name, email, phone, company, title, sortBy, order } = query;
 
     // Build where clause for filtering
@@ -33,16 +36,20 @@ export class ContactsService {
       orderBy.name = 'asc';
     }
 
-    return this.contactsRepository.findMany(where, orderBy);
+    return this.contactsRepository.findMany(userId, where, orderBy);
   }
 
-  async getContact(id: string): Promise<ContactResponseDto | null> {
-    return this.contactsRepository.findById(id);
+  async getContact(
+    userId: string,
+    id: string,
+  ): Promise<ContactResponseDto | null> {
+    return this.contactsRepository.findById(userId, id);
   }
 
-  async createContact(dto: CreateContactDto): Promise<ContactResponseDto> {
-    const userId = '00000000-0000-0000-0000-000000000001'; // Hard-coded for now, will come from JWT later
-
+  async createContact(
+    userId: string,
+    dto: CreateContactDto,
+  ): Promise<ContactResponseDto> {
     const data: Prisma.ContactCreateInput = {
       name: dto.name,
       email: dto.email,
@@ -54,10 +61,11 @@ export class ContactsService {
       },
     };
 
-    return this.contactsRepository.create(data);
+    return this.contactsRepository.create(userId, data);
   }
 
   async updateContact(
+    userId: string,
     id: string,
     dto: UpdateContactDto,
   ): Promise<ContactResponseDto | null> {
@@ -65,10 +73,13 @@ export class ContactsService {
       ...dto,
     };
 
-    return this.contactsRepository.update(id, data);
+    return this.contactsRepository.update(userId, id, data);
   }
 
-  async deleteContact(id: string): Promise<ContactResponseDto | null> {
-    return this.contactsRepository.delete(id);
+  async deleteContact(
+    userId: string,
+    id: string,
+  ): Promise<ContactResponseDto | null> {
+    return this.contactsRepository.delete(userId, id);
   }
 }
