@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ContactResponseDto, UpdateContactDto } from "@/app/api/contacts/dto";
 import { ContactModal } from "@/components/ContactModal";
+import Notes from "./notes";
 
 export default function ContactDetailPage() {
   const router = useRouter();
@@ -142,6 +143,8 @@ export default function ContactDetailPage() {
           </p>
         </div>
       </div>
+
+      <Notes contactId={contactId} />
 
       <ContactModal
         isOpen={isEditModalOpen}
