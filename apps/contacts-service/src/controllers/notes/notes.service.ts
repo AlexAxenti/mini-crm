@@ -10,7 +10,10 @@ import { UpdateNoteDto } from './dto/update-note-body.dto';
 export class NotesService {
   constructor(private readonly notesRepository: NotesRepository) {}
 
-  async getNotes(query: GetNotesQueryDto): Promise<NoteResponseDto[]> {
+  async getNotes(
+    userId: string,
+    query: GetNotesQueryDto,
+  ): Promise<NoteResponseDto[]> {
     const { sortBy, order } = query;
 
     // Where clause if needed later
@@ -23,14 +26,15 @@ export class NotesService {
       orderBy.updatedAt = 'desc';
     }
 
-    return this.notesRepository.findMany(where, orderBy);
+    return this.notesRepository.findMany(userId, where, orderBy);
   }
 
-  async getNote(id: string): Promise<NoteResponseDto | null> {
-    return this.notesRepository.findById(id);
+  async getNote(userId: string, id: string): Promise<NoteResponseDto | null> {
+    return this.notesRepository.findById(userId, id);
   }
 
   async createNote(
+    userId: string,
     contactId: string,
     dto: CreateNoteDto,
   ): Promise<NoteResponseDto> {
@@ -42,19 +46,26 @@ export class NotesService {
       },
     };
 
-    return this.notesRepository.create(data);
+    return this.notesRepository.create(userId, data);
   }
 
-  async updateNote(id: string, dto: UpdateNoteDto): Promise<NoteResponseDto> {
+  async updateNote(
+    userId: string,
+    id: string,
+    dto: UpdateNoteDto,
+  ): Promise<NoteResponseDto | null> {
     const data: Prisma.NoteUpdateInput = {
       ...dto,
       updatedAt: new Date(),
     };
 
-    return this.notesRepository.update(id, data);
+    return this.notesRepository.update(userId, id, data);
   }
 
-  async deleteNote(id: string): Promise<NoteResponseDto> {
-    return this.notesRepository.delete(id);
+  async deleteNote(
+    userId: string,
+    id: string,
+  ): Promise<NoteResponseDto | null> {
+    return this.notesRepository.delete(userId, id);
   }
 }

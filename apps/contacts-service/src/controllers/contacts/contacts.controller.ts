@@ -8,6 +8,7 @@ import {
   Body,
   NotFoundException,
   ConflictException,
+  Req,
 } from '@nestjs/common';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
@@ -16,6 +17,7 @@ import { UpdateContactDto } from './dto/update-contact-body.dto';
 import { ContactsService } from './contacts.service';
 import { UuidParam } from '../../util/parse-uuid-param';
 import { Prisma } from '@prisma/client';
+import { AuthorizedRequest } from '../../types/authorized-request';
 
 @Controller('contacts')
 export class ContactsController {
@@ -23,14 +25,18 @@ export class ContactsController {
 
   @Get()
   async getContacts(
+    @Req() req: AuthorizedRequest,
     @Query() query: GetContactsQueryDto,
   ): Promise<ContactResponseDto[]> {
-    return this.contactsService.getContacts(query);
+    return this.contactsService.getContacts(req.userId, query);
   }
 
   @Get(':id')
-  async getContact(@UuidParam('id') id: string): Promise<ContactResponseDto> {
-    const contact = await this.contactsService.getContact(id);
+  async getContact(
+    @Req() req: AuthorizedRequest,
+    @UuidParam('id') id: string,
+  ): Promise<ContactResponseDto> {
+    const contact = await this.contactsService.getContact(req.userId, id);
     if (!contact) {
       throw new NotFoundException(`Contact with ID ${id} not found`);
     }
@@ -39,10 +45,11 @@ export class ContactsController {
 
   @Post()
   async createContact(
+    @Req() req: AuthorizedRequest,
     @Body() dto: CreateContactDto,
   ): Promise<ContactResponseDto> {
     try {
-      return await this.contactsService.createContact(dto);
+      return await this.contactsService.createContact(req.userId, dto);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -59,11 +66,16 @@ export class ContactsController {
 
   @Patch(':id')
   async updateContact(
+    @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
     @Body() dto: UpdateContactDto,
   ): Promise<ContactResponseDto> {
     try {
-      const contact = await this.contactsService.updateContact(id, dto);
+      const contact = await this.contactsService.updateContact(
+        req.userId,
+        id,
+        dto,
+      );
       if (!contact) {
         throw new NotFoundException(`Contact with ID ${id} not found`);
       }
@@ -85,12 +97,12 @@ export class ContactsController {
     }
   }
 
-  // TODO: Delete notes first via cascading delete
   @Delete(':id')
   async deleteContact(
+    @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
   ): Promise<ContactResponseDto> {
-    const contact = await this.contactsService.deleteContact(id);
+    const contact = await this.contactsService.deleteContact(req.userId, id);
     if (!contact) {
       throw new NotFoundException(`Contact with ID ${id} not found`);
     }

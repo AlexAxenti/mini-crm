@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './util/global-exception-filter';
+import { ApiKeyGuard } from './guards/api-key.guard';
+import { SupabaseAuthGuard } from './guards/supabase-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,9 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // Apply auth guards globally
+  app.useGlobalGuards(new ApiKeyGuard(), new SupabaseAuthGuard());
 
   await app.listen(process.env.PORT ?? 3000);
 }

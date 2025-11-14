@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -26,6 +26,27 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      // Ensure user exists in database (fallback for users created before this feature)
+      if (data.user) {
+        try {
+          // Try to get the user first
+          const checkResponse = await fetch("/api/user");
+          if (checkResponse.status === 404) {
+            // User doesn't exist, create them
+            await fetch("/api/user", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email }),
+            });
+          }
+        } catch (err) {
+          console.error("Error ensuring user exists:", err);
+          // Continue to dashboard even if this fails
+        }
+      }
+
       router.push("/contacts");
       router.refresh();
     }

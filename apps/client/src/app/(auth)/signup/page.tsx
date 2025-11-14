@@ -26,7 +26,7 @@ export default function SignupPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -35,6 +35,28 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      // Create user in the contacts service
+      if (data.user) {
+        try {
+          const response = await fetch("/api/user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Failed to create user in database:", errorData);
+            // Don't show error to user since Supabase signup was successful
+          }
+        } catch (err) {
+          console.error("Error creating user:", err);
+          // Don't show error to user since Supabase signup was successful
+        }
+      }
+
       setMessage("Check your email to confirm your account!");
       setLoading(false);
       setTimeout(() => router.push("/login"), 3000);
