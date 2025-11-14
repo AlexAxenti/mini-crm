@@ -57,35 +57,47 @@ const Notes = ({ contactId }: NotesProps) => {
     try {
       if (isNewNote) {
         // Create new note
-        const newNote: NoteResponseDto = {
-          id: Date.now().toString(),
+        const createData: CreateNoteDto = {
           title: noteTitle,
           body: noteBody,
-          contactId: contactId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         };
+
+        const res = await fetch(`/api/contacts/${contactId}/notes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(createData),
+        });
+
+        if (!res.ok) throw new Error("Failed to create note");
+
+        const newNote: NoteResponseDto = await res.json();
         setNotes([newNote, ...notes]);
         setSelectedNote(newNote);
         setIsNewNote(false);
-        alert("Note created successfully!");
       } else if (selectedNote) {
         // Update existing note
-        const updatedNotes = notes.map((note) =>
-          note.id === selectedNote.id
-            ? {
-                ...note,
-                title: noteTitle,
-                body: noteBody,
-                updatedAt: new Date(),
-              }
-            : note
+        const updateData: UpdateNoteDto = {
+          title: noteTitle,
+          body: noteBody,
+        };
+
+        const res = await fetch(`/api/notes/${selectedNote.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+
+        if (!res.ok) throw new Error("Failed to update note");
+
+        const updatedNote: NoteResponseDto = await res.json();
+        setNotes(
+          notes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
         );
-        setNotes(updatedNotes);
-        const updated = updatedNotes.find((n) => n.id === selectedNote.id);
-        if (updated) setSelectedNote(updated);
-        alert("Note updated successfully!");
+        setSelectedNote(updatedNote);
       }
+
+      // Refresh notes list to get proper sorting
+      await fetchNotes();
     } catch (error) {
       console.error("Failed to save note:", error);
       alert("Failed to save note");
@@ -99,11 +111,16 @@ const Notes = ({ contactId }: NotesProps) => {
     if (!confirm("Are you sure you want to delete this note?")) return;
 
     try {
+      const res = await fetch(`/api/notes/${selectedNote.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete note");
+
       setNotes(notes.filter((note) => note.id !== selectedNote.id));
       setSelectedNote(null);
       setNoteTitle("");
       setNoteBody("");
-      alert("Note deleted successfully!");
     } catch (error) {
       console.error("Failed to delete note:", error);
       alert("Failed to delete note");
@@ -112,34 +129,21 @@ const Notes = ({ contactId }: NotesProps) => {
 
   const fetchNotes = useCallback(async () => {
     try {
-      // Mock data for now - replace with actual API call later
-      const mockNotes: NoteResponseDto[] = [
-        {
-          id: "1",
-          title: "First Meeting",
-          body: "Had a great conversation about the project requirements.",
-          contactId: contactId,
-          createdAt: new Date("2025-11-10"),
-          updatedAt: new Date("2025-11-10"),
-        },
-        {
-          id: "2",
-          title: "Follow-up",
-          body: "Discussed pricing and timeline. Will send proposal by end of week.",
-          contactId: contactId,
-          createdAt: new Date("2025-11-12"),
-          updatedAt: new Date("2025-11-12"),
-        },
-      ];
+      // Build query params for sorting
+      const params = new URLSearchParams();
+      params.append("sortBy", "updatedAt");
+      params.append("order", sortOrder === "newest" ? "desc" : "asc");
 
-      // Sort notes based on sortOrder
-      const sorted = [...mockNotes].sort((a, b) => {
-        const dateA = new Date(a.updatedAt).getTime();
-        const dateB = new Date(b.updatedAt).getTime();
-        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-      });
+      const queryString = params.toString();
+      const url = `/api/notes?${queryString}`;
 
-      setNotes(sorted);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch notes");
+
+      const data: NoteResponseDto[] = await res.json();
+      // Filter notes by contactId on the frontend
+      const contactNotes = data.filter((note) => note.contactId === contactId);
+      setNotes(contactNotes);
     } catch (error) {
       console.error("Failed to fetch notes:", error);
     }
