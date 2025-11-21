@@ -14,10 +14,12 @@ export class NotesService {
     userId: string,
     query: GetNotesQueryDto,
   ): Promise<NoteResponseDto[]> {
-    const { sortBy, order } = query;
+    const { contactId, sortBy, order } = query;
 
-    // Where clause if needed later
     const where: Prisma.NoteWhereInput = {};
+    if (contactId) {
+      where.contactId = contactId;
+    }
 
     const orderBy: Prisma.NoteOrderByWithRelationInput = {};
     if (sortBy) {

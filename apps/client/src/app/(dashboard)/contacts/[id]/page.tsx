@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ContactResponseDto, UpdateContactDto } from "@/app/api/contacts/dto";
+import { UpdateContactDto } from "@/app/api/contacts/dto";
 import { ContactModal } from "@/components/ContactModal";
+import { useGetContact } from "@/app/api-lib/queries/contacts/get-contact";
+import { useUpdateContact } from "@/app/api-lib/mutations/contacts/update-contact";
+import { useDeleteContact } from "@/app/api-lib/mutations/contacts/delete-contact";
 import Notes from "./notes";
 
 export default function ContactDetailPage() {
@@ -10,65 +13,30 @@ export default function ContactDetailPage() {
   const params = useParams();
   const contactId = params.id as string;
 
-  const [contact, setContact] = useState<ContactResponseDto | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
-  const fetchContact = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/contacts/${contactId}`);
-      if (!res.ok) throw new Error("Failed to fetch contact");
-      const data: ContactResponseDto = await res.json();
-      setContact(data);
-    } catch (error) {
-      console.error("Failed to fetch contact:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchContact();
-  }, [contactId]);
+  // Queries and Mutations
+  const { data: contact, isLoading } = useGetContact(contactId);
+  const updateContactMutation = useUpdateContact();
+  const deleteContactMutation = useDeleteContact();
 
   const handleUpdate = async (data: UpdateContactDto) => {
-    const res = await fetch(`/api/contacts/${contactId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to update contact");
-    }
-
-    // Refresh the contact
-    await fetchContact();
+    await updateContactMutation.mutateAsync({ id: contactId, data });
   };
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this contact?")) return;
 
-    setDeleting(true);
     try {
-      const res = await fetch(`/api/contacts/${contactId}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Failed to delete contact");
-
+      await deleteContactMutation.mutateAsync(contactId);
       router.push("/contacts");
     } catch (error) {
       console.error("Failed to delete contact:", error);
       alert("Failed to delete contact");
-    } finally {
-      setDeleting(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="text-center py-12">Loading...</div>;
   }
 
@@ -97,10 +65,10 @@ export default function ContactDetailPage() {
           </button>
           <button
             onClick={handleDelete}
-            disabled={deleting}
+            disabled={deleteContactMutation.isPending}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {deleting ? "Deleting..." : "Delete"}
+            {deleteContactMutation.isPending ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

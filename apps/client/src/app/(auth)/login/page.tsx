@@ -1,55 +1,20 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLogin } from "@/app/api-lib/mutations/user/login";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const loginMutation = useLogin();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      // Ensure user exists in database (fallback for users created before this feature)
-      if (data.user) {
-        try {
-          // Try to get the user first
-          const checkResponse = await fetch("/api/user");
-          if (checkResponse.status === 404) {
-            // User doesn't exist, create them
-            await fetch("/api/user", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email }),
-            });
-          }
-        } catch (err) {
-          console.error("Error ensuring user exists:", err);
-          // Continue to dashboard even if this fails
-        }
-      }
-
-      router.push("/contacts");
-      router.refresh();
-    }
+    await loginMutation.mutateAsync({ email, password });
+    router.push("/contacts");
+    router.refresh();
   };
 
   return (
@@ -85,14 +50,18 @@ export default function LoginPage() {
           />
         </div>
 
-        {error && <div className="text-red-500 text-sm">{error}</div>}
+        {loginMutation.error && (
+          <div className="text-red-500 text-sm">
+            {loginMutation.error.message}
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loginMutation.isPending}
           className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Loading..." : "Login"}
+          {loginMutation.isPending ? "Loading..." : "Login"}
         </button>
       </form>
 
