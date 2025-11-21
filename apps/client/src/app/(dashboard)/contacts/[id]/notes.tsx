@@ -1,34 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
-
-// Note types matching backend DTOs
-interface NoteResponseDto {
-  id: string;
-  title: string;
-  body: string;
-  contactId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CreateNoteDto {
-  title: string;
-  body: string;
-}
-
-interface UpdateNoteDto {
-  title?: string;
-  body?: string;
-}
-
-type SortOrder = "newest" | "oldest";
+import { useState } from "react";
+import {
+  useGetNotes,
+  NoteResponseDto,
+  SortOrder,
+} from "@/app/api-lib/queries/notes/get-notes";
+import {
+  useCreateNote,
+  CreateNoteDto,
+} from "@/app/api-lib/mutations/notes/create-note";
+import {
+  useUpdateNote,
+  UpdateNoteDto,
+} from "@/app/api-lib/mutations/notes/update-note";
+import { useDeleteNote } from "@/app/api-lib/mutations/notes/delete-note";
 
 interface NotesProps {
   contactId: string;
 }
 
 const Notes = ({ contactId }: NotesProps) => {
-  // Notes state
-  const [notes, setNotes] = useState<NoteResponseDto[]>([]);
   const [selectedNote, setSelectedNote] = useState<NoteResponseDto | null>(
     null
   );
@@ -36,7 +26,12 @@ const Notes = ({ contactId }: NotesProps) => {
   const [noteBody, setNoteBody] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [isNewNote, setIsNewNote] = useState(false);
-  const [noteSaving, setNoteSaving] = useState(false);
+
+  // Queries and Mutations
+  const { data: notes = [] } = useGetNotes({ contactId, sortOrder });
+  const createNoteMutation = useCreateNote();
+  const updateNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
 
   const handleNoteSelect = (note: NoteResponseDto) => {
     setSelectedNote(note);
@@ -53,56 +48,37 @@ const Notes = ({ contactId }: NotesProps) => {
   };
 
   const handleSaveNote = async () => {
-    setNoteSaving(true);
     try {
       if (isNewNote) {
-        // Create new note
         const createData: CreateNoteDto = {
           title: noteTitle,
           body: noteBody,
         };
 
-        const res = await fetch(`/api/contacts/${contactId}/notes`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(createData),
+        const newNote = await createNoteMutation.mutateAsync({
+          contactId,
+          data: createData,
         });
 
-        if (!res.ok) throw new Error("Failed to create note");
-
-        const newNote: NoteResponseDto = await res.json();
-        setNotes([newNote, ...notes]);
         setSelectedNote(newNote);
         setIsNewNote(false);
       } else if (selectedNote) {
-        // Update existing note
         const updateData: UpdateNoteDto = {
           title: noteTitle,
           body: noteBody,
         };
 
-        const res = await fetch(`/api/notes/${selectedNote.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData),
+        const updatedNote = await updateNoteMutation.mutateAsync({
+          noteId: selectedNote.id,
+          contactId,
+          data: updateData,
         });
 
-        if (!res.ok) throw new Error("Failed to update note");
-
-        const updatedNote: NoteResponseDto = await res.json();
-        setNotes(
-          notes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
-        );
         setSelectedNote(updatedNote);
       }
-
-      // Refresh notes list to get proper sorting
-      await fetchNotes();
     } catch (error) {
       console.error("Failed to save note:", error);
       alert("Failed to save note");
-    } finally {
-      setNoteSaving(false);
     }
   };
 
@@ -111,13 +87,11 @@ const Notes = ({ contactId }: NotesProps) => {
     if (!confirm("Are you sure you want to delete this note?")) return;
 
     try {
-      const res = await fetch(`/api/notes/${selectedNote.id}`, {
-        method: "DELETE",
+      await deleteNoteMutation.mutateAsync({
+        noteId: selectedNote.id,
+        contactId,
       });
 
-      if (!res.ok) throw new Error("Failed to delete note");
-
-      setNotes(notes.filter((note) => note.id !== selectedNote.id));
       setSelectedNote(null);
       setNoteTitle("");
       setNoteBody("");
@@ -126,32 +100,6 @@ const Notes = ({ contactId }: NotesProps) => {
       alert("Failed to delete note");
     }
   };
-
-  const fetchNotes = useCallback(async () => {
-    try {
-      // Build query params for sorting
-      const params = new URLSearchParams();
-      params.append("sortBy", "updatedAt");
-      params.append("order", sortOrder === "newest" ? "desc" : "asc");
-
-      const queryString = params.toString();
-      const url = `/api/notes?${queryString}`;
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch notes");
-
-      const data: NoteResponseDto[] = await res.json();
-      // Filter notes by contactId on the frontend
-      const contactNotes = data.filter((note) => note.contactId === contactId);
-      setNotes(contactNotes);
-    } catch (error) {
-      console.error("Failed to fetch notes:", error);
-    }
-  }, [sortOrder, contactId]);
-
-  useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
 
   return (
     <div className="mt-8">
@@ -254,14 +202,20 @@ const Notes = ({ contactId }: NotesProps) => {
                   <button
                     onClick={handleSaveNote}
                     disabled={
-                      noteSaving || !noteTitle.trim() || !noteBody.trim()
+                      (isNewNote
+                        ? createNoteMutation.isPending
+                        : updateNoteMutation.isPending) ||
+                      !noteTitle.trim() ||
+                      !noteBody.trim()
                     }
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {noteSaving
+                    {isNewNote
+                      ? createNoteMutation.isPending
+                        ? "Creating..."
+                        : "Create Note"
+                      : updateNoteMutation.isPending
                       ? "Saving..."
-                      : isNewNote
-                      ? "Create Note"
                       : "Save Changes"}
                   </button>
                 </div>

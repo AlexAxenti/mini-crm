@@ -7,7 +7,7 @@ import {
   useGetContacts,
   SearchField,
   SortOption,
-} from "@/app/api-lib/queries/contacts/contacts";
+} from "@/app/api-lib/queries/contacts/get-contacts";
 import { useCreateContact } from "@/app/api-lib/mutations/contacts/create-contact";
 
 export default function ContactsPage() {
@@ -80,10 +80,6 @@ export default function ContactsPage() {
             onChange={(e) => setSearchValue(e.target.value)}
             className="flex-1 px-3 py-2 bg-bg text-fg border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
-
-        {/* Sort Section */}
-        <div className="flex gap-2">
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value as SortOption)}
@@ -94,6 +90,10 @@ export default function ContactsPage() {
             <option value="date-desc">Newest to Oldest</option>
             <option value="date-asc">Oldest to Newest</option>
           </select>
+        </div>
+
+        {/* Sort Section */}
+        <div className="flex gap-2">
           <button
             onClick={() => ExecuteSearch()}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

@@ -1,66 +1,28 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSignup } from "@/app/api-lib/mutations/user/signup";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const signupMutation = useSignup();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setMessage(null);
-    setLoading(true);
 
     if (password !== confirmPassword) {
       setError("Passwords don't match");
-      setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      // Create user in the contacts service
-      if (data.user) {
-        try {
-          const response = await fetch("/api/user", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Failed to create user in database:", errorData);
-            // Don't show error to user since Supabase signup was successful
-          }
-        } catch (err) {
-          console.error("Error creating user:", err);
-          // Don't show error to user since Supabase signup was successful
-        }
-      }
-
-      setMessage("Check your email to confirm your account!");
-      setLoading(false);
-      setTimeout(() => router.push("/login"), 3000);
-    }
+    await signupMutation.mutateAsync({ email, password });
+    setTimeout(() => router.push("/login"), 3000);
   };
 
   return (
@@ -117,14 +79,24 @@ export default function SignupPage() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        {message && <div className="text-green-500 text-sm">{message}</div>}
+        {signupMutation.error && (
+          <div className="text-red-500 text-sm">
+            {signupMutation.error.message}
+          </div>
+        )}
+
+        {signupMutation.isSuccess && (
+          <div className="text-green-500 text-sm">
+            Check your email to confirm your account!
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={signupMutation.isPending}
           className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Loading..." : "Sign Up"}
+          {signupMutation.isPending ? "Loading..." : "Sign Up"}
         </button>
       </form>
 

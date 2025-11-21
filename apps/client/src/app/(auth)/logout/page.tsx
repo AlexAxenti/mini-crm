@@ -1,21 +1,27 @@
 "use client";
 import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useLogout } from "@/app/api-lib/mutations/user/logout";
 
 export default function LogoutPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const logoutMutation = useLogout();
 
   useEffect(() => {
-    const logout = async () => {
-      await supabase.auth.signOut();
-      router.push("/login");
-      router.refresh();
+    const performLogout = async () => {
+      try {
+        await logoutMutation.mutateAsync();
+        router.push("/login");
+        router.refresh();
+      } catch (error) {
+        console.error("Logout error:", error);
+        router.push("/login");
+      }
     };
 
-    logout();
-  }, [router, supabase.auth]);
+    performLogout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg text-fg">
