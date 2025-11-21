@@ -1,78 +1,45 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ContactResponseDto, CreateContactDto } from "@/app/api/contacts/dto";
+import { CreateContactDto } from "@/app/api/contacts/dto";
 import { ContactModal } from "@/components/ContactModal";
-
-type SearchField = "name" | "email" | "phone" | "company" | "title";
-type SortOption = "name-asc" | "name-desc" | "date-desc" | "date-asc";
+import {
+  useGetContacts,
+  SearchField,
+  SortOption,
+} from "@/app/api-lib/queries/contacts/contacts";
+import { useCreateContact } from "@/app/api-lib/mutations/contacts/create-contact";
 
 export default function ContactsPage() {
   const router = useRouter();
-  const [contacts, setContacts] = useState<ContactResponseDto[]>([]);
-  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchField, setSearchField] = useState<SearchField>("name");
   const [searchValue, setSearchValue] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("name-asc");
 
-  const fetchContacts = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Build query params
-      const params = new URLSearchParams();
+  // Active filters for the query (only updated on search button click)
+  const [activeSearchField, setActiveSearchField] =
+    useState<SearchField>("name");
+  const [activeSearchValue, setActiveSearchValue] = useState("");
+  const [activeSortOption, setActiveSortOption] =
+    useState<SortOption>("name-asc");
 
-      // Add search params if there's a search value
-      if (searchValue.trim()) {
-        params.append(searchField, searchValue.trim());
-      }
+  const { data: contacts = [], isLoading } = useGetContacts({
+    searchField: activeSearchField,
+    searchValue: activeSearchValue,
+    sortOption: activeSortOption,
+  });
 
-      // Add sort params
-      const [sortBy, order] = sortOption.split("-");
-      if (sortBy === "name") {
-        params.append("sortBy", "name");
-        params.append("order", order);
-      } else {
-        params.append("sortBy", "updatedAt");
-        params.append("order", order);
-      }
+  const createContactMutation = useCreateContact();
 
-      const queryString = params.toString();
-      const url = queryString
-        ? `/api/contacts?${queryString}`
-        : "/api/contacts";
-
-      const res = await fetch(url);
-      const data: ContactResponseDto[] = await res.json();
-      setContacts(data);
-    } catch (error) {
-      console.error("Failed to fetch contacts:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchValue, searchField, sortOption]);
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const ExecuteSearch = async () => {
-    await fetchContacts();
+  const ExecuteSearch = () => {
+    setActiveSearchField(searchField);
+    setActiveSearchValue(searchValue);
+    setActiveSortOption(sortOption);
   };
 
   const handleCreateContact = async (data: CreateContactDto) => {
-    const res = await fetch("/api/contacts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to create contact");
-    }
-
-    // Refresh the list
-    await fetchContacts();
+    await createContactMutation.mutateAsync(data);
   };
 
   const handleRowClick = (contactId: string) => {
@@ -136,7 +103,7 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {loading && <div className="text-center py-4">Loading...</div>}
+      {isLoading && <div className="text-center py-4">Loading...</div>}
 
       <ContactModal
         isOpen={isModalOpen}
@@ -192,7 +159,7 @@ export default function ContactsPage() {
         </table>
       </div>
 
-      {contacts.length === 0 && !loading && (
+      {contacts.length === 0 && !isLoading && (
         <div className="text-center py-12 text-gray-500">
           No contacts yet. Click &quot;Add Contact&quot; to get started.
         </div>
