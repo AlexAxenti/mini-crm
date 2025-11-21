@@ -60,7 +60,6 @@ export default function ContactsPage() {
 
       {/* Search and Sort Controls */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        {/* Search Section */}
         <div className="flex-1 flex gap-2">
           <select
             value={searchField}
@@ -92,7 +91,6 @@ export default function ContactsPage() {
           </select>
         </div>
 
-        {/* Sort Section */}
         <div className="flex gap-2">
           <button
             onClick={() => ExecuteSearch()}
