@@ -29,26 +29,14 @@ export class ContactsRepository {
     });
   }
 
-  async update(userId: string, id: string, data: Prisma.ContactUpdateInput) {
-    // First check if contact exists and belongs to user
-    const contact = await this.findById(userId, id);
-    if (!contact) {
-      return null;
-    }
-
+  async update(id: string, data: Prisma.ContactUpdateInput) {
     return this.prisma.contact.update({
-      where: { id, userId },
+      where: { id },
       data,
     });
   }
 
-  async delete(userId: string, id: string) {
-    // First check if contact exists and belongs to user
-    const contact = await this.findById(userId, id);
-    if (!contact) {
-      return null;
-    }
-
+  async delete(id: string) {
     await this.prisma.note.deleteMany({
       where: { contactId: id },
     });

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { NotesRepository } from './notes.repository';
+import { ContactsRepository } from '../contacts/contacts.repository';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
 import { CreateNoteDto } from './dto/create-note-body.dto';
@@ -8,7 +9,10 @@ import { UpdateNoteDto } from './dto/update-note-body.dto';
 
 @Injectable()
 export class NotesService {
-  constructor(private readonly notesRepository: NotesRepository) {}
+  constructor(
+    private readonly notesRepository: NotesRepository,
+    private readonly contactsRepository: ContactsRepository,
+  ) {}
 
   async getNotes(
     userId: string,
@@ -40,6 +44,12 @@ export class NotesService {
     contactId: string,
     dto: CreateNoteDto,
   ): Promise<NoteResponseDto> {
+    // Verify the contact exists and belongs to the user
+    const contact = await this.contactsRepository.findById(userId, contactId);
+    if (!contact) {
+      throw new Error('Contact not found or does not belong to user');
+    }
+
     const data: Prisma.NoteCreateInput = {
       title: dto.title,
       body: dto.body,
@@ -48,7 +58,7 @@ export class NotesService {
       },
     };
 
-    return this.notesRepository.create(userId, data);
+    return this.notesRepository.create(data);
   }
 
   async updateNote(
@@ -56,18 +66,30 @@ export class NotesService {
     id: string,
     dto: UpdateNoteDto,
   ): Promise<NoteResponseDto | null> {
+    // Check if note exists and belongs to user's contact
+    const existing = await this.notesRepository.findById(userId, id);
+    if (!existing) {
+      return null;
+    }
+
     const data: Prisma.NoteUpdateInput = {
       ...dto,
       updatedAt: new Date(),
     };
 
-    return this.notesRepository.update(userId, id, data);
+    return this.notesRepository.update(id, data);
   }
 
   async deleteNote(
     userId: string,
     id: string,
   ): Promise<NoteResponseDto | null> {
-    return this.notesRepository.delete(userId, id);
+    // Check if note exists and belongs to user's contact
+    const existing = await this.notesRepository.findById(userId, id);
+    if (!existing) {
+      return null;
+    }
+
+    return this.notesRepository.delete(id);
   }
 }

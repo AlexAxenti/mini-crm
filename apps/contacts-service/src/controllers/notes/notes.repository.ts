@@ -33,48 +33,20 @@ export class NotesRepository {
     });
   }
 
-  async create(userId: string, data: Prisma.NoteCreateInput) {
-    // Verify the contact belongs to the user
-    const contactId =
-      typeof data.contact === 'object' && 'connect' in data.contact
-        ? data.contact.connect?.id
-        : undefined;
-
-    if (contactId) {
-      const contact = await this.prisma.contact.findUnique({
-        where: { id: contactId, userId },
-      });
-
-      if (!contact) {
-        throw new Error('Contact not found or does not belong to user');
-      }
-    }
-
+  async create(data: Prisma.NoteCreateInput) {
     return this.prisma.note.create({
       data,
     });
   }
 
-  async update(userId: string, id: string, data: Prisma.NoteUpdateInput) {
-    // First check if note exists and belongs to user's contact
-    const note = await this.findById(userId, id);
-    if (!note) {
-      return null;
-    }
-
+  async update(id: string, data: Prisma.NoteUpdateInput) {
     return this.prisma.note.update({
       where: { id },
       data,
     });
   }
 
-  async delete(userId: string, id: string) {
-    // First check if note exists and belongs to user's contact
-    const note = await this.findById(userId, id);
-    if (!note) {
-      return null;
-    }
-
+  async delete(id: string) {
     return this.prisma.note.delete({
       where: { id },
     });
