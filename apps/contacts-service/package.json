@@ -16,7 +16,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:dev:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "db:seed": "prisma db seed",
+    "prisma:seed": "prisma db seed",
     "prisma:env": "prisma env --dotenv-config-path=.env"
   },
   "prisma": {
