@@ -10,7 +10,7 @@ import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { EventResponseDto } from './dto/event-response.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventsService } from './events.service';
-import { UuidParam } from '../../util/parse-uuid-param';
+import { UuidParam } from '@mini-crm/shared';
 
 @Controller('events')
 export class EventsController {

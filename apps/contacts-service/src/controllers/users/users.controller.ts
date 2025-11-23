@@ -10,7 +10,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user-body.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { AuthorizedRequest } from '../../types/authorized-request';
+import { AuthorizedRequest } from '@mini-crm/shared';
 
 @Controller('users')
 export class UsersController {
