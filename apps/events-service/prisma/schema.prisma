@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String            // "contact_created", "note_created", "note_updated", ...
+  entityType String            
+  entityId   String            
+  createdAt  DateTime @default(now())
+  meta       Json?             
+
+  @@index([userId, type, createdAt])
+  @@index([userId, entityType, createdAt])
+  @@index([userId, entityId, createdAt])
+  @@index([userId, createdAt])
+}

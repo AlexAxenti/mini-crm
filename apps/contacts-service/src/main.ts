@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './util/global-exception-filter';
-import { ApiKeyGuard } from './guards/api-key.guard';
-import { SupabaseAuthGuard } from './guards/supabase-auth.guard';
+import {
+  GlobalExceptionFilter,
+  ApiKeyGuard,
+  SupabaseAuthGuard,
+} from '@mini-crm/shared';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
