@@ -6,12 +6,12 @@ const protectedRoutes = ["/contacts"];
 export async function protectRoutes(request: NextRequest, user: User | null) {
   const pathname = request.nextUrl.pathname;
 
-  // Protect dashboard routes - redirect to login if not authenticated
+  // Not logged in
   if (protectedRoutes.some((route) => pathname.startsWith(route)) && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect to contacts if accessing auth pages while logged in
+  // Logged in
   if (
     (pathname.startsWith("/login") || pathname.startsWith("/signup")) &&
     user
@@ -19,5 +19,5 @@ export async function protectRoutes(request: NextRequest, user: User | null) {
     return NextResponse.redirect(new URL("/contacts", request.url));
   }
 
-  return null; // No redirect needed
+  return null;
 }

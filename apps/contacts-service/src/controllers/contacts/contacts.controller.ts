@@ -16,7 +16,7 @@ import { CreateContactDto } from './dto/create-contact-body.dto';
 import { UpdateContactDto } from './dto/update-contact-body.dto';
 import { ContactsService } from './contacts.service';
 import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from 'generated/prisma/client';
 
 @Controller('contacts')
 export class ContactsController {

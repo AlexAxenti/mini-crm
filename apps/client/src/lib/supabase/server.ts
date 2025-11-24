@@ -12,7 +12,6 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        // setAll is optional for server components
       },
     }
   );

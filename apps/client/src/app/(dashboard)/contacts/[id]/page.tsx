@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { UpdateContactDto } from "@/app/api/contacts/dto";
 import { ContactModal } from "@/components/ContactModal";
-import { useGetContact } from "@/app/api-lib/queries/contacts/get-contact";
-import { useUpdateContact } from "@/app/api-lib/mutations/contacts/update-contact";
-import { useDeleteContact } from "@/app/api-lib/mutations/contacts/delete-contact";
+import { useGetContact } from "@/lib/api/queries/contacts/get-contact";
+import { useUpdateContact } from "@/lib/api/mutations/contacts/update-contact";
+import { useDeleteContact } from "@/lib/api/mutations/contacts/delete-contact";
 import Notes from "./notes";
 
 export default function ContactDetailPage() {

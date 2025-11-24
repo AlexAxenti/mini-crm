@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSignup } from "@/app/api-lib/mutations/user/signup";
+import { useSignup } from "@/lib/api/mutations/user/signup";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");

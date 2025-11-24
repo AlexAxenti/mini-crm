@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLogout } from "@/app/api-lib/mutations/user/logout";
+import { useLogout } from "@/lib/api/mutations/user/logout";
 
 export default function LogoutPage() {
   const router = useRouter();

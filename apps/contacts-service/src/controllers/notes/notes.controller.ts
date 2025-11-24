@@ -15,7 +15,7 @@ import { CreateNoteDto } from './dto/create-note-body.dto';
 import { UpdateNoteDto } from './dto/update-note-body.dto';
 import { NotesService } from './notes.service';
 import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from 'generated/prisma/client';
 
 @Controller('notes')
 export class NotesController {

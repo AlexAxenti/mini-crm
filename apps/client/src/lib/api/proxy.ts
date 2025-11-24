@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function verifyAuth(request: NextRequest) {
+export async function verifyAuth() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,12 +18,14 @@ export async function verifyAuth(request: NextRequest) {
   } = await supabase.auth.getSession();
   const accessToken = session?.access_token;
 
+  console.log(accessToken);
+
   return { user, accessToken, error: null };
 }
 
 export async function proxy(request: NextRequest, targetUrl: string) {
   // 1. Verify authentication
-  const { user, accessToken, error } = await verifyAuth(request);
+  const { user, accessToken, error } = await verifyAuth();
 
   if (error || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,7 +44,11 @@ export async function proxy(request: NextRequest, targetUrl: string) {
       const jsonBody = await request.json();
       body = JSON.stringify(jsonBody);
     } catch {
-      // No body or invalid JSON
+      console.error("Failed to parse request body");
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
     }
   }
 
