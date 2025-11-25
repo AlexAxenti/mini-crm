@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-// import { Prisma } from '../../../generated/prisma/client';
 import { Prisma } from '@prisma/client';
 import { ContactsRepository } from './contacts.repository';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
@@ -32,7 +31,6 @@ export class ContactsService {
     if (sortBy) {
       orderBy[sortBy] = order || 'asc';
     } else {
-      // Default sort by name ascending
       orderBy.name = 'asc';
     }
 
@@ -69,17 +67,27 @@ export class ContactsService {
     id: string,
     dto: UpdateContactDto,
   ): Promise<ContactResponseDto | null> {
+    const existing = await this.contactsRepository.findById(userId, id);
+    if (!existing) {
+      return null;
+    }
+
     const data: Prisma.ContactUpdateInput = {
       ...dto,
     };
 
-    return this.contactsRepository.update(userId, id, data);
+    return this.contactsRepository.update(id, data);
   }
 
   async deleteContact(
     userId: string,
     id: string,
   ): Promise<ContactResponseDto | null> {
-    return this.contactsRepository.delete(userId, id);
+    const existing = await this.contactsRepository.findById(userId, id);
+    if (!existing) {
+      return null;
+    }
+
+    return this.contactsRepository.delete(id);
   }
 }

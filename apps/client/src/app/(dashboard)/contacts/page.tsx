@@ -7,8 +7,8 @@ import {
   useGetContacts,
   SearchField,
   SortOption,
-} from "@/app/api-lib/queries/contacts/get-contacts";
-import { useCreateContact } from "@/app/api-lib/mutations/contacts/create-contact";
+} from "@/lib/api/queries/contacts/get-contacts";
+import { useCreateContact } from "@/lib/api/mutations/contacts/create-contact";
 
 export default function ContactsPage() {
   const router = useRouter();

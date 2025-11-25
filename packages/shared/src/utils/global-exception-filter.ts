@@ -3,8 +3,8 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
+} from "@nestjs/common";
+import { Request, Response } from "express";
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -22,13 +22,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const response = exception.getResponse();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       message =
-        typeof response === 'string'
+        typeof response === "string"
           ? response
           : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             (response as any).message || response;
       console.log(response);
     } else {
-      message = 'Internal server error';
+      message = "Internal server error";
       console.log(exception);
     }
 

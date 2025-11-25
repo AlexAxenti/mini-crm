@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useLogin } from "@/app/api-lib/mutations/user/login";
+import { useLogin } from "@/lib/api/mutations/user/login";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

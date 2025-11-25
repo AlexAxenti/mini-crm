@@ -5,12 +5,16 @@ import {
   Query,
   Body,
   NotFoundException,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { EventResponseDto } from './dto/event-response.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventsService } from './events.service';
 import { UuidParam } from '@mini-crm/shared';
+import type { AuthorizedRequest } from '@mini-crm/shared';
+import { CommKeyGuard } from '../../guards/comm-key.guard';
 
 @Controller('events')
 export class EventsController {
@@ -18,19 +22,18 @@ export class EventsController {
 
   @Get()
   async getEvents(
-    // TODO: Add userId from middleware
+    @Req() req: AuthorizedRequest,
     @Query() query: GetEventsQueryDto,
   ): Promise<EventResponseDto[]> {
-    // TODO: Replace with actual userId from middleware
-    const userId = 'temp-user-id';
-    return this.eventsService.getEvents(userId, query);
+    return this.eventsService.getEvents(req.userId, query);
   }
 
   @Get(':id')
-  async getEvent(@UuidParam('id') id: string): Promise<EventResponseDto> {
-    // TODO: Replace with actual userId from middleware
-    const userId = 'temp-user-id';
-    const event = await this.eventsService.getEvent(userId, id);
+  async getEvent(
+    @Req() req: AuthorizedRequest,
+    @UuidParam('id') id: string,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventsService.getEvent(req.userId, id);
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
@@ -38,9 +41,11 @@ export class EventsController {
   }
 
   @Post()
-  async createEvent(@Body() dto: CreateEventDto): Promise<EventResponseDto> {
-    // TODO: Replace with actual userId from middleware
-    const userId = 'temp-user-id';
-    return await this.eventsService.createEvent(userId, dto);
+  @UseGuards(CommKeyGuard)
+  async createEvent(
+    @Req() req: AuthorizedRequest,
+    @Body() dto: CreateEventDto,
+  ): Promise<EventResponseDto> {
+    return await this.eventsService.createEvent(req.userId, dto);
   }
 }

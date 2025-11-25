@@ -9,6 +9,7 @@ import {
   NotFoundException,
   ConflictException,
   Req,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
@@ -17,8 +18,11 @@ import { UpdateContactDto } from './dto/update-contact-body.dto';
 import { ContactsService } from './contacts.service';
 import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
+import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
+import { PublishEvent } from '../../decorators/publish-event.decorator';
 
 @Controller('contacts')
+@UseInterceptors(EventsPublisherInterceptor)
 export class ContactsController {
   constructor(private readonly contactsService: ContactsService) {}
 
@@ -43,6 +47,7 @@ export class ContactsController {
   }
 
   @Post()
+  @PublishEvent({ eventType: 'created', entityType: 'contact' })
   async createContact(
     @Req() req: AuthorizedRequest,
     @Body() dto: CreateContactDto,
@@ -64,6 +69,7 @@ export class ContactsController {
   }
 
   @Patch(':id')
+  @PublishEvent({ eventType: 'updated', entityType: 'contact' })
   async updateContact(
     @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
@@ -97,6 +103,7 @@ export class ContactsController {
   }
 
   @Delete(':id')
+  @PublishEvent({ eventType: 'deleted', entityType: 'contact' })
   async deleteContact(
     @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,

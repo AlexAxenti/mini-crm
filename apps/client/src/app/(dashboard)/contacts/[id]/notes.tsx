@@ -3,16 +3,16 @@ import {
   useGetNotes,
   NoteResponseDto,
   SortOrder,
-} from "@/app/api-lib/queries/notes/get-notes";
+} from "@/lib/api/queries/notes/get-notes";
 import {
   useCreateNote,
   CreateNoteDto,
-} from "@/app/api-lib/mutations/notes/create-note";
+} from "@/lib/api/mutations/notes/create-note";
 import {
   useUpdateNote,
   UpdateNoteDto,
-} from "@/app/api-lib/mutations/notes/update-note";
-import { useDeleteNote } from "@/app/api-lib/mutations/notes/delete-note";
+} from "@/lib/api/mutations/notes/update-note";
+import { useDeleteNote } from "@/lib/api/mutations/notes/delete-note";
 
 interface NotesProps {
   contactId: string;
@@ -215,8 +215,8 @@ const Notes = ({ contactId }: NotesProps) => {
                         ? "Creating..."
                         : "Create Note"
                       : updateNoteMutation.isPending
-                      ? "Saving..."
-                      : "Save Changes"}
+                        ? "Saving..."
+                        : "Save Changes"}
                   </button>
                 </div>
               </div>

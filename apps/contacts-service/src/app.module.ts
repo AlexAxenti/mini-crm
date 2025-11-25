@@ -1,14 +1,17 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { ContactsModule } from './controllers/contacts/contacts.module';
 import { NotesModule } from './controllers/notes/notes.module';
 import { UsersModule } from './controllers/users/users.module';
 import { PrismaService } from './prisma.service';
+import { EventsClientService } from './services/events-client.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
 
 @Module({
-  imports: [ContactsModule, NotesModule, UsersModule],
+  imports: [HttpModule, ContactsModule, NotesModule, UsersModule],
   controllers: [],
-  providers: [PrismaService],
+  providers: [PrismaService, EventsClientService],
+  exports: [EventsClientService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
