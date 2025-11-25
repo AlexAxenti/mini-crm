@@ -18,11 +18,13 @@ export class EventsClientService {
   private readonly logger = new Logger(EventsClientService.name);
   private readonly eventsServiceUrl: string;
   private readonly eventsApiKey: string;
+  private readonly eventsCommKey: string;
 
   constructor(private readonly httpService: HttpService) {
     this.eventsServiceUrl =
       process.env.EVENTS_SERVICE_URL || 'http://localhost:3001';
     this.eventsApiKey = process.env.EVENTS_API_KEY || '';
+    this.eventsCommKey = process.env.EVENTS_COMM_KEY || '';
 
     if (!this.eventsApiKey) {
       this.logger.warn(
@@ -50,6 +52,7 @@ export class EventsClientService {
         headers: {
           'x-api-key': this.eventsApiKey,
           'x-supabase-token': supabaseToken,
+          'x-comm-key': this.eventsCommKey,
         },
       }),
     )

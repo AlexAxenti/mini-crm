@@ -6,6 +6,7 @@ import {
   Body,
   NotFoundException,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { EventResponseDto } from './dto/event-response.dto';
@@ -13,6 +14,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { EventsService } from './events.service';
 import { UuidParam } from '@mini-crm/shared';
 import type { AuthorizedRequest } from '@mini-crm/shared';
+import { CommKeyGuard } from '../../guards/comm-key.guard';
 
 @Controller('events')
 export class EventsController {
@@ -39,6 +41,7 @@ export class EventsController {
   }
 
   @Post()
+  @UseGuards(CommKeyGuard)
   async createEvent(
     @Req() req: AuthorizedRequest,
     @Body() dto: CreateEventDto,
