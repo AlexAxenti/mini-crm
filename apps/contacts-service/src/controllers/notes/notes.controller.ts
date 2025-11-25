@@ -8,6 +8,7 @@ import {
   Body,
   NotFoundException,
   Req,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
@@ -16,8 +17,11 @@ import { UpdateNoteDto } from './dto/update-note-body.dto';
 import { NotesService } from './notes.service';
 import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
+import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
+import { PublishEvent } from '../../decorators/publish-event.decorator';
 
 @Controller('notes')
+@UseInterceptors(EventsPublisherInterceptor)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
@@ -42,6 +46,7 @@ export class NotesController {
   }
 
   @Post(':contactId')
+  @PublishEvent({ eventType: 'created', entityType: 'note' })
   async createNote(
     @Req() req: AuthorizedRequest,
     @UuidParam('contactId') contactId: string,
@@ -61,6 +66,7 @@ export class NotesController {
   }
 
   @Patch(':id')
+  @PublishEvent({ eventType: 'updated', entityType: 'note' })
   async updateNote(
     @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
@@ -74,6 +80,7 @@ export class NotesController {
   }
 
   @Delete(':id')
+  @PublishEvent({ eventType: 'deleted', entityType: 'note' })
   async deleteNote(
     @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
