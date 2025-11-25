@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '@prisma/client';
 import { NotesRepository } from './notes.repository';
 import { ContactsRepository } from '../contacts/contacts.repository';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';

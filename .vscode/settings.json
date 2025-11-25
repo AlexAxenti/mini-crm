@@ -6,8 +6,8 @@
   },
   "files.exclude": {
     "**/node_modules": true,
-    "**/dist": true,
     "**/.git": true,
+    "**/dist": true,
     "**/.DS_Store": true
   },
   "typescript.tsserver.maxTsServerMemory": 4096

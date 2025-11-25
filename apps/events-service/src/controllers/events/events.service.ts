@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '@prisma/client';
 import { EventsRepository } from './events.repository';
 import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { EventResponseDto } from './dto/event-response.dto';
