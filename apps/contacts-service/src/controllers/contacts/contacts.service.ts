@@ -5,10 +5,14 @@ import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
 import { CreateContactDto } from './dto/create-contact-body.dto';
 import { UpdateContactDto } from './dto/update-contact-body.dto';
+import { EventsClientService } from '../../services/events-client.service';
 
 @Injectable()
 export class ContactsService {
-  constructor(private readonly contactsRepository: ContactsRepository) {}
+  constructor(
+    private readonly contactsRepository: ContactsRepository,
+    private readonly eventsClient: EventsClientService,
+  ) {}
 
   async getContacts(
     userId: string,
@@ -31,7 +35,6 @@ export class ContactsService {
     if (sortBy) {
       orderBy[sortBy] = order || 'asc';
     } else {
-      // Default sort by name ascending
       orderBy.name = 'asc';
     }
 
@@ -48,6 +51,7 @@ export class ContactsService {
   async createContact(
     userId: string,
     dto: CreateContactDto,
+    supabaseToken?: string,
   ): Promise<ContactResponseDto> {
     const data: Prisma.ContactCreateInput = {
       name: dto.name,
@@ -60,15 +64,27 @@ export class ContactsService {
       },
     };
 
-    return this.contactsRepository.create(userId, data);
+    const contact = await this.contactsRepository.create(userId, data);
+
+    if (supabaseToken) {
+      this.eventsClient.publishEvent({
+        eventType: 'created',
+        entityType: 'contact',
+        entityId: contact.id,
+        supabaseToken,
+        meta: { name: contact.name, email: contact.email },
+      });
+    }
+
+    return contact;
   }
 
   async updateContact(
     userId: string,
     id: string,
     dto: UpdateContactDto,
+    supabaseToken?: string,
   ): Promise<ContactResponseDto | null> {
-    // Check if contact exists and belongs to user
     const existing = await this.contactsRepository.findById(userId, id);
     if (!existing) {
       return null;
@@ -78,19 +94,43 @@ export class ContactsService {
       ...dto,
     };
 
-    return this.contactsRepository.update(id, data);
+    const contact = await this.contactsRepository.update(id, data);
+
+    if (supabaseToken && contact) {
+      this.eventsClient.publishEvent({
+        eventType: 'updated',
+        entityType: 'contact',
+        entityId: contact.id,
+        supabaseToken,
+        meta: { name: contact.name, email: contact.email },
+      });
+    }
+
+    return contact;
   }
 
   async deleteContact(
     userId: string,
     id: string,
+    supabaseToken?: string,
   ): Promise<ContactResponseDto | null> {
-    // Check if contact exists and belongs to user
     const existing = await this.contactsRepository.findById(userId, id);
     if (!existing) {
       return null;
     }
 
-    return this.contactsRepository.delete(id);
+    const contact = await this.contactsRepository.delete(id);
+
+    if (supabaseToken && contact) {
+      this.eventsClient.publishEvent({
+        eventType: 'deleted',
+        entityType: 'contact',
+        entityId: contact.id,
+        supabaseToken,
+        meta: { name: contact.name, email: contact.email },
+      });
+    }
+
+    return contact;
   }
 }

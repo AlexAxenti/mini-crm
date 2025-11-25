@@ -48,7 +48,12 @@ export class ContactsController {
     @Body() dto: CreateContactDto,
   ): Promise<ContactResponseDto> {
     try {
-      return await this.contactsService.createContact(req.userId, dto);
+      const supabaseToken = req.headers['x-supabase-token'] as string;
+      return await this.contactsService.createContact(
+        req.userId,
+        dto,
+        supabaseToken,
+      );
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -70,10 +75,12 @@ export class ContactsController {
     @Body() dto: UpdateContactDto,
   ): Promise<ContactResponseDto> {
     try {
+      const supabaseToken = req.headers['x-supabase-token'] as string;
       const contact = await this.contactsService.updateContact(
         req.userId,
         id,
         dto,
+        supabaseToken,
       );
       if (!contact) {
         throw new NotFoundException(`Contact with ID ${id} not found`);
@@ -101,7 +108,12 @@ export class ContactsController {
     @Req() req: AuthorizedRequest,
     @UuidParam('id') id: string,
   ): Promise<ContactResponseDto> {
-    const contact = await this.contactsService.deleteContact(req.userId, id);
+    const supabaseToken = req.headers['x-supabase-token'] as string;
+    const contact = await this.contactsService.deleteContact(
+      req.userId,
+      id,
+      supabaseToken,
+    );
     if (!contact) {
       throw new NotFoundException(`Contact with ID ${id} not found`);
     }

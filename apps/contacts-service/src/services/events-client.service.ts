@@ -38,33 +38,31 @@ export class EventsClientService {
     supabaseToken,
     meta,
   }: PublishEventParams): void {
-    try {
-      const payload = {
-        type: eventType,
-        entityType,
-        entityId,
-        meta: meta || {},
-      };
+    const payload = {
+      type: eventType,
+      entityType,
+      entityId,
+      meta: meta || {},
+    };
 
-      firstValueFrom(
-        this.httpService.post(`${this.eventsServiceUrl}/events`, payload, {
-          headers: {
-            'x-api-key': this.eventsApiKey,
-            'x-supabase-token': supabaseToken,
-          },
-        }),
-      ).catch((error) => {
+    firstValueFrom(
+      this.httpService.post(`${this.eventsServiceUrl}/events`, payload, {
+        headers: {
+          'x-api-key': this.eventsApiKey,
+          'x-supabase-token': supabaseToken,
+        },
+      }),
+    )
+      .then(() => {
+        this.logger.log(
+          `Event published: ${eventType} ${entityType} ${entityId}`,
+        );
+      })
+      .catch((error) => {
         this.logger.error(
           `Failed to publish event: ${eventType} ${entityType} ${entityId}`,
           error instanceof Error ? error.message : String(error),
         );
       });
-
-      this.logger.log(
-        `Event published: ${eventType} ${entityType} ${entityId}`,
-      );
-    } catch (error) {
-      this.logger.error('Error in publishEvent', error);
-    }
   }
 }
