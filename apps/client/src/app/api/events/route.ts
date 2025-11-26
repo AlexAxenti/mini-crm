@@ -5,9 +5,5 @@ import { ServiceName } from "@/lib/api/service-config";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const queryString = url.search;
-  return proxy(request, ServiceName.CONTACTS, `/contacts${queryString}`);
-}
-
-export async function POST(request: NextRequest) {
-  return proxy(request, ServiceName.CONTACTS, "/contacts");
+  return proxy(request, ServiceName.EVENTS, `/events${queryString}`);
 }

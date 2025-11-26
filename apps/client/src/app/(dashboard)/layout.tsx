@@ -20,6 +20,12 @@ export default function DashboardLayout({
               >
                 Contacts
               </Link>
+              <Link
+                href="/events"
+                className="hover:text-blue-600 transition-colors"
+              >
+                Events
+              </Link>
             </nav>
           </div>
 
