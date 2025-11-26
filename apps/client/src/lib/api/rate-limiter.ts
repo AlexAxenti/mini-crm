@@ -3,8 +3,8 @@ type TokenBucket = {
   lastRefill: number;
 };
 
-const CAPACITY = 5;
-const REFILL_RATE = 0.1; // 1 per second
+const CAPACITY = 60;
+const REFILL_RATE = 1; // 1 per second
 const IDLE_TTL = 5 * 60000;
 
 const buckets: Map<string, TokenBucket> = new Map();
