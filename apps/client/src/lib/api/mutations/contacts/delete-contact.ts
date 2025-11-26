@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { throwApiError } from "../../util/throw-api-error";
 
 const deleteContact = async (id: string): Promise<void> => {
   const res = await fetch(`/api/contacts/${id}`, {
@@ -6,7 +7,7 @@ const deleteContact = async (id: string): Promise<void> => {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to delete contact");
+    throwApiError("Failed to delete contact", res);
   }
 };
 

@@ -14,6 +14,15 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
           queries: {
             staleTime: 60 * 1000,
             refetchOnWindowFocus: false,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            retry: (failureCount, error: any) => {
+              console.log("Query error:", error);
+              if (error?.status >= 400 && error?.status < 500) {
+                return false;
+              }
+
+              return failureCount < 3;
+            },
           },
         },
       })

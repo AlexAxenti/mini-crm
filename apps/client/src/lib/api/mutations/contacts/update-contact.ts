@@ -1,5 +1,6 @@
 import { ContactResponseDto, UpdateContactDto } from "@/app/api/contacts/dto";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { throwApiError } from "../../util/throw-api-error";
 
 interface UpdateContactParams {
   id: string;
@@ -17,7 +18,7 @@ const updateContact = async ({
   });
 
   if (!res.ok) {
-    throw new Error("Failed to update contact");
+    throwApiError("Failed to update contact", res);
   }
 
   return res.json();

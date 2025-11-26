@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ContactResponseDto } from "@/app/api/contacts/dto";
+import { throwApiError } from "../../util/throw-api-error";
 
 export type SearchField = "name" | "email" | "phone" | "company" | "title";
 export type SortOption = "name-asc" | "name-desc" | "date-desc" | "date-asc";
@@ -38,7 +39,7 @@ const fetchContacts = async ({
   const res = await fetch(url);
 
   if (!res.ok) {
-    throw new Error("Failed to fetch contacts");
+    throwApiError("Failed to fetch contact", res);
   }
 
   return res.json();

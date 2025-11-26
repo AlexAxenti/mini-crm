@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { throwApiError } from "../../util/throw-api-error";
 
 interface DeleteNoteParams {
   noteId: string;
@@ -11,7 +12,7 @@ const deleteNote = async ({ noteId }: DeleteNoteParams): Promise<void> => {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to delete note");
+    throwApiError("Failed to delete note", res);
   }
 };
 

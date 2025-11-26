@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { EventResponseDto } from "@/app/api/events/dto";
+import { throwApiError } from "../../util/throw-api-error";
 
 export type EventType = "created" | "updated" | "deleted";
 export type EventEntityType = "contact" | "note" | "";
@@ -31,7 +32,7 @@ const fetchEvents = async ({
   const res = await fetch(url);
 
   if (!res.ok) {
-    throw new Error("Failed to fetch events");
+    throwApiError("Failed to fetch events", res);
   }
 
   return res.json();
