@@ -1,10 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { NoteResponseDto } from "@/app/api-lib/queries/notes/get-notes";
-
-export interface UpdateNoteDto {
-  title?: string;
-  body?: string;
-}
+import { NoteResponseDto, UpdateNoteDto } from "@/app/api/notes/dto";
+import { throwApiError } from "../../util/throw-api-error";
 
 interface UpdateNoteParams {
   noteId: string;
@@ -23,7 +19,7 @@ const updateNote = async ({
   });
 
   if (!res.ok) {
-    throw new Error("Failed to update note");
+    throwApiError("Failed to update note", res);
   }
 
   return res.json();

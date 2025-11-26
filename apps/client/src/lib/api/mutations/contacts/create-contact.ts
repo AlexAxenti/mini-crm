@@ -1,5 +1,6 @@
 import { ContactResponseDto, CreateContactDto } from "@/app/api/contacts/dto";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { throwApiError } from "../../util/throw-api-error";
 
 const createContact = async (
   data: CreateContactDto
@@ -11,9 +12,8 @@ const createContact = async (
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create contact");
+    throwApiError("Failed to create contact", res);
   }
-
   return res.json();
 };
 

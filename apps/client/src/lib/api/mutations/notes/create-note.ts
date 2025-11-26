@@ -1,10 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { NoteResponseDto } from "@/app/api-lib/queries/notes/get-notes";
-
-export interface CreateNoteDto {
-  title: string;
-  body: string;
-}
+import { CreateNoteDto, NoteResponseDto } from "@/app/api/notes/dto";
+import { throwApiError } from "../../util/throw-api-error";
 
 interface CreateNoteParams {
   contactId: string;
@@ -22,7 +18,7 @@ const createNote = async ({
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create note");
+    throwApiError("Failed to create note", res);
   }
 
   return res.json();

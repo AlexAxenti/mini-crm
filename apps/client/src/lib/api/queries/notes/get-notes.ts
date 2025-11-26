@@ -1,13 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
-export interface NoteResponseDto {
-  id: string;
-  title: string;
-  body: string;
-  contactId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { throwApiError } from "../../util/throw-api-error";
+import { NoteResponseDto } from "@/app/api/notes/dto";
 
 export type SortOrder = "newest" | "oldest";
 
@@ -31,7 +24,7 @@ const fetchNotes = async ({
   const res = await fetch(url);
 
   if (!res.ok) {
-    throw new Error("Failed to fetch notes");
+    throwApiError("Failed to fetch notes", res);
   }
 
   return res.json();

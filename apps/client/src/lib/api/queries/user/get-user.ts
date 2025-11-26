@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { throwApiError } from "../../util/throw-api-error";
 
 export interface UserResponseDto {
   id: string;
@@ -11,9 +12,8 @@ const fetchUser = async (): Promise<UserResponseDto> => {
   const res = await fetch("/api/user");
 
   if (!res.ok) {
-    throw new Error("Failed to fetch user");
+    throwApiError("Failed to fetch user", res);
   }
-
   return res.json();
 };
 

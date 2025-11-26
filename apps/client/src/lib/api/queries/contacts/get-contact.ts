@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { ContactResponseDto } from "@/app/api/contacts/dto";
+import { throwApiError } from "../../util/throw-api-error";
 
 const fetchContact = async (id: string): Promise<ContactResponseDto> => {
   const res = await fetch(`/api/contacts/${id}`);
 
   if (!res.ok) {
-    throw new Error("Failed to fetch contact");
+    throwApiError("Failed to fetch contact", res);
   }
 
   return res.json();
