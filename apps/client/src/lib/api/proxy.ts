@@ -20,7 +20,7 @@ export async function verifyAuth() {
   } = await supabase.auth.getSession();
   const accessToken = session?.access_token;
 
-  // console.log(accessToken);
+  console.log(accessToken);
 
   return { user, accessToken, error: null };
 }
