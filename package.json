@@ -7,7 +7,7 @@
     "dev:client": "cd apps/client && npm run dev",
     "dev:contacts": "cd apps/contacts-service && npm run start:dev",
     "dev:events": "cd apps/events-service && npm run start:dev",
-    "install:all": "npm install && cd apps/client && npm install && cd ../contacts-service && npm install && cd ../events-service && npm install && cd ../../packages/shared && npm install"
+    "install:all": "cd packages/shared && npm install && cd ../../apps/client && npm install && cd ../contacts-service && npm install && cd ../events-service && npm install"
   },
   "repository": {
     "type": "git",
