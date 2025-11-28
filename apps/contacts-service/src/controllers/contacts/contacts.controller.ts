@@ -19,7 +19,7 @@ import { ContactsService } from './contacts.service';
 import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
 import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
-import { PublishEvent } from '../../decorators/publish-event.decorator';
+import { PublishEvent } from '../../lib/decorators/publish-event.decorator';
 
 @Controller('contacts')
 @UseInterceptors(EventsPublisherInterceptor)

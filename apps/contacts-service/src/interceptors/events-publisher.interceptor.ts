@@ -12,7 +12,7 @@ import {
   PUBLISH_EVENT_KEY,
   PublishEventMetadata,
   DEFAULT_META_EXTRACTORS,
-} from '../decorators/publish-event.decorator';
+} from '../lib/decorators/publish-event.decorator';
 import { AuthorizedRequest } from '@mini-crm/shared';
 
 @Injectable()

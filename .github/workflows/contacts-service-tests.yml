@@ -1,0 +1,84 @@
+name: Contacts Service Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/contacts-service/**"
+      - "packages/shared/**"
+      - ".github/workflows/contacts-service-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/contacts-service/**"
+      - "packages/shared/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mini_crm_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    defaults:
+      run:
+        working-directory: ./apps/contacts-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            apps/contacts-service/package-lock.json
+            packages/shared/package-lock.json
+
+      - name: Install shared package dependencies
+        run: npm install
+        working-directory: ./packages/shared
+
+      - name: Install contacts service dependencies
+        run: npm install
+        working-directory: ./apps/contacts-service
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+        working-directory: ./apps/contacts-service
+
+      - name: Run database migrations
+        run: npm run test:db:setup
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mini_crm_test?schema=public
+
+      - name: Run integration tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mini_crm_test?schema=public
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            apps/contacts-service/coverage/
+            apps/contacts-service/test-results.xml
+          retention-days: 5
