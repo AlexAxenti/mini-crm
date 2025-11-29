@@ -1,10 +1,11 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventsModule } from './controllers/events/events.module';
+import { HealthModule } from './controllers/health/health.module';
 import { PrismaService } from './prisma.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
 
 @Module({
-  imports: [EventsModule],
+  imports: [EventsModule, HealthModule],
   controllers: [],
   providers: [PrismaService],
 })
