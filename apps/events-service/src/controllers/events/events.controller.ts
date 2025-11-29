@@ -12,11 +12,12 @@ import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { EventResponseDto } from './dto/event-response.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventsService } from './events.service';
-import { UuidParam } from '@mini-crm/shared';
+import { ApiKeyGuard, SupabaseAuthGuard, UuidParam } from '@mini-crm/shared';
 import type { AuthorizedRequest } from '@mini-crm/shared';
 import { CommKeyGuard } from '../../guards/comm-key.guard';
 
 @Controller('events')
+@UseGuards(ApiKeyGuard, SupabaseAuthGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 

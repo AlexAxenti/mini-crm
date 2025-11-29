@@ -10,18 +10,25 @@ import {
   ConflictException,
   Req,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
 import { CreateContactDto } from './dto/create-contact-body.dto';
 import { UpdateContactDto } from './dto/update-contact-body.dto';
 import { ContactsService } from './contacts.service';
-import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
+import {
+  UuidParam,
+  AuthorizedRequest,
+  SupabaseAuthGuard,
+  ApiKeyGuard,
+} from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
 import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
 import { PublishEvent } from '../../lib/decorators/publish-event.decorator';
 
 @Controller('contacts')
+@UseGuards(ApiKeyGuard, SupabaseAuthGuard)
 @UseInterceptors(EventsPublisherInterceptor)
 export class ContactsController {
   constructor(private readonly contactsService: ContactsService) {}
