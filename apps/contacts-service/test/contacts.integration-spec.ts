@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -13,7 +18,6 @@ describe('ContactsController Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let testUserId: string;
-  let testContactId: string;
   let mockAuthHeaders: Record<string, string>;
 
   beforeAll(async () => {
@@ -38,7 +42,7 @@ describe('ContactsController Integration', () => {
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
-    testUserId = TEST_CONFIG.TEST_USER_ID;
+    testUserId = TEST_CONFIG.TEST_CONTACTS_USER_ID;
     mockAuthHeaders = createMockAuthHeaders(testUserId);
 
     // Ensure test user exists
@@ -54,583 +58,301 @@ describe('ContactsController Integration', () => {
   });
 
   beforeEach(async () => {
-    // Clean up contacts before each test
+    // Clean up notes and contacts in proper order (notes first due to foreign key)
     await prisma.note.deleteMany({
       where: { contact: { userId: testUserId } },
     });
     await prisma.contact.deleteMany({ where: { userId: testUserId } });
   });
 
-  // describe('POST /contacts', () => {
-  //   it('should create a contact with all fields', async () => {
-  //     const createContactDto = {
-  //       name: 'John Doe',
-  //       email: 'john@example.com',
-  //       phone: '+1234567890',
-  //       company: 'Test Corp',
-  //       title: 'CEO',
-  //     };
-
-  //     const response = await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send(createContactDto)
-  //       .expect(201);
-
-  //     expect(response.body).toMatchObject({
-  //       id: expect.any(String),
-  //       name: 'John Doe',
-  //       email: 'john@example.com',
-  //       phone: '+1234567890',
-  //       company: 'Test Corp',
-  //       title: 'CEO',
-  //       userId: testUserId,
-  //       createdAt: expect.any(String),
-  //       updatedAt: expect.any(String),
-  //     });
-
-  //     testContactId = response.body.id;
-  //   });
-
-  //   it('should create a contact with only required fields', async () => {
-  //     const createContactDto = {
-  //       name: 'Jane Smith',
-  //     };
-
-  //     const response = await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send(createContactDto)
-  //       .expect(201);
-
-  //     expect(response.body).toMatchObject({
-  //       id: expect.any(String),
-  //       name: 'Jane Smith',
-  //       email: null,
-  //       phone: null,
-  //       company: null,
-  //       title: null,
-  //       userId: testUserId,
-  //     });
-  //   });
-
-  //   it('should create multiple contacts with different optional field combinations', async () => {
-  //     const contacts = [
-  //       { name: 'Contact 1', email: 'contact1@test.com' },
-  //       { name: 'Contact 2', phone: '+1111111111' },
-  //       { name: 'Contact 3', company: 'Test Company' },
-  //       { name: 'Contact 4', title: 'Developer' },
-  //       {
-  //         name: 'Contact 5',
-  //         email: 'contact5@test.com',
-  //         company: 'Another Corp',
-  //       },
-  //     ];
-
-  //     for (const contact of contacts) {
-  //       const response = await request(app.getHttpServer())
-  //         .post('/contacts')
-  //         .set(mockAuthHeaders)
-  //         .send(contact)
-  //         .expect(201);
-
-  //       expect(response.body.name).toBe(contact.name);
-  //       if (contact.email) expect(response.body.email).toBe(contact.email);
-  //       if (contact.phone) expect(response.body.phone).toBe(contact.phone);
-  //       if (contact.company)
-  //         expect(response.body.company).toBe(contact.company);
-  //       if (contact.title) expect(response.body.title).toBe(contact.title);
-  //     }
-  //   });
-
-  //   it('should return 400 when name is missing', async () => {
-  //     const createContactDto = {
-  //       email: 'test@example.com',
-  //     };
-
-  //     const response = await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send(createContactDto)
-  //       .expect(400);
-
-  //     expect(response.body.message).toContain('name');
-  //   });
-
-  //   it('should return 400 when name is empty string', async () => {
-  //     const createContactDto = {
-  //       name: '',
-  //     };
-
-  //     await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send(createContactDto)
-  //       .expect(400);
-  //   });
-
-  //   it('should return 400 when email format is invalid', async () => {
-  //     const createContactDto = {
-  //       name: 'Test User',
-  //       email: 'invalid-email',
-  //     };
-
-  //     const response = await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send(createContactDto)
-  //       .expect(400);
-
-  //     expect(response.body.message).toContain('email');
-  //   });
-
-  //   it('should return 409 when email already exists for the user', async () => {
-  //     const email = 'duplicate@example.com';
-
-  //     // Create first contact
-  //     await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send({ name: 'First Contact', email })
-  //       .expect(201);
-
-  //     // Try to create second contact with same email
-  //     const response = await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set(mockAuthHeaders)
-  //       .send({ name: 'Second Contact', email })
-  //       .expect(409);
-
-  //     expect(response.body.message).toContain('email already exists');
-  //   });
-
-  //   it('should return 401 when no auth headers provided', async () => {
-  //     await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .send({ name: 'Test User' })
-  //       .expect(401);
-  //   });
-
-  //   it('should return 401 when invalid API key provided', async () => {
-  //     await request(app.getHttpServer())
-  //       .post('/contacts')
-  //       .set({ ...mockAuthHeaders, 'api-key': 'invalid-key' })
-  //       .send({ name: 'Test User' })
-  //       .expect(401);
-  //   });
-  // });
-
   describe('GET /contacts', () => {
     beforeEach(async () => {
-      // Create test contacts
-      const contacts = [
-        {
-          name: 'Alice Johnson',
-          email: 'alice@startup.com',
-          company: 'Startup Inc',
-          title: 'CTO',
-        },
-        {
-          name: 'Bob Lee',
-          email: 'bob@finflow.com',
-          company: 'FinFlow',
-          title: 'Engineer',
-        },
-        // {
-        //   name: 'Charlie Brown',
-        //   phone: '+1234567890',
-        //   company: 'ACME Corp',
-        //   title: 'Manager',
-        // },
-        // { name: 'Diana Prince', email: 'diana@wonder.com', title: 'Hero' },
-      ];
-
-      for (const contact of contacts) {
-        await prisma.contact.create({
-          data: { ...contact, userId: testUserId },
-        });
-      }
+      // Create test contacts for query tests
+      await prisma.contact.createMany({
+        data: [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            name: 'Alice Johnson',
+            email: 'alice@company.com',
+            company: 'TechCorp',
+            title: 'Developer',
+            userId: testUserId,
+          },
+          {
+            id: '22222222-2222-2222-2222-222222222222',
+            name: 'Bob Smith',
+            email: 'bob@startup.com',
+            company: 'StartupInc',
+            title: 'Manager',
+            userId: testUserId,
+          },
+        ],
+      });
     });
 
-    it('should return all contacts for user', async () => {
+    it('should return all contacts without filters', async () => {
       const response = await request(app.getHttpServer())
         .get('/contacts')
         .set(mockAuthHeaders)
         .expect(200);
 
       expect(response.body).toHaveLength(2);
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'Alice Johnson',
+            email: 'alice@company.com',
+            company: 'TechCorp',
+          }),
+          expect.objectContaining({
+            name: 'Bob Smith',
+            email: 'bob@startup.com',
+            company: 'StartupInc',
+          }),
+        ]),
+      );
+    });
+
+    it('should filter contacts by name', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/contacts')
+        .query({ name: 'Alice' })
+        .set(mockAuthHeaders)
+        .expect(200);
+
+      expect(response.body).toHaveLength(1);
       expect(response.body[0]).toMatchObject({
-        id: expect.any(String),
-        name: expect.any(String),
+        name: 'Alice Johnson',
+        email: 'alice@company.com',
+      });
+    });
+
+    it('should filter contacts by company', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/contacts')
+        .query({ company: 'TechCorp' })
+        .set(mockAuthHeaders)
+        .expect(200);
+
+      expect(response.body).toHaveLength(1);
+      expect(response.body[0]).toMatchObject({
+        name: 'Alice Johnson',
+        company: 'TechCorp',
+      });
+    });
+
+    it('should sort contacts by name descending', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/contacts')
+        .query({ sortBy: 'name', order: 'desc' })
+        .set(mockAuthHeaders)
+        .expect(200);
+
+      expect(response.body).toHaveLength(2);
+      expect(response.body[0].name).toBe('Bob Smith');
+      expect(response.body[1].name).toBe('Alice Johnson');
+    });
+
+    it('should return empty array when no contacts match filter', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/contacts')
+        .query({ name: 'NonexistentName' })
+        .set(mockAuthHeaders)
+        .expect(200);
+
+      expect(response.body).toHaveLength(0);
+      expect(response.body).toEqual([]);
+    });
+  });
+
+  describe('GET /contacts/:id', () => {
+    it('should return contact by id', async () => {
+      // Create a test contact
+      const contact = await prisma.contact.create({
+        data: {
+          name: 'Test Contact',
+          email: 'test@example.com',
+          userId: testUserId,
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get(`/contacts/${contact.id}`)
+        .set(mockAuthHeaders)
+        .expect(200);
+
+      expect(response.body).toMatchObject({
+        id: contact.id,
+        name: 'Test Contact',
+        email: 'test@example.com',
         userId: testUserId,
       });
     });
 
-    // it('should filter contacts by name', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?name=Alice')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
+    it('should return 404 for non-existent contact', async () => {
+      const nonExistentId = '99999999-9999-9999-9999-999999999999';
 
-    //   expect(response.body).toHaveLength(1);
-    //   expect(response.body[0].name).toBe('Alice Johnson');
-    // });
+      const response = await request(app.getHttpServer())
+        .get(`/contacts/${nonExistentId}`)
+        .set(mockAuthHeaders)
+        .expect(404);
 
-    // it('should filter contacts by email', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?email=bob@finflow.com')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
-
-    //   expect(response.body).toHaveLength(1);
-    //   expect(response.body[0].email).toBe('bob@finflow.com');
-    // });
-
-    // it('should filter contacts by company (case insensitive)', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?company=acme')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
-
-    //   expect(response.body).toHaveLength(1);
-    //   expect(response.body[0].company).toBe('ACME Corp');
-    // });
-
-    // it('should sort contacts by name ascending', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?sortBy=name&order=asc')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
-
-    //   const names = response.body.map((contact: any) => contact.name);
-    //   expect(names).toEqual([
-    //     'Alice Johnson',
-    //     'Bob Lee',
-    //     'Charlie Brown',
-    //     'Diana Prince',
-    //   ]);
-    // });
-
-    // it('should sort contacts by name descending', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?sortBy=name&order=desc')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
-
-    //   const names = response.body.map((contact: any) => contact.name);
-    //   expect(names).toEqual([
-    //     'Diana Prince',
-    //     'Charlie Brown',
-    //     'Bob Lee',
-    //     'Alice Johnson',
-    //   ]);
-    // });
-
-    // it('should return empty array when no contacts match filter', async () => {
-    //   const response = await request(app.getHttpServer())
-    //     .get('/contacts?name=NonExistent')
-    //     .set(mockAuthHeaders)
-    //     .expect(200);
-
-    //   expect(response.body).toHaveLength(0);
-    // });
-
-    // it('should return 401 when no auth provided', async () => {
-    //   await request(app.getHttpServer()).get('/contacts').expect(401);
-    // });
+      expect(response.body.message).toContain(
+        `Contact with ID ${nonExistentId} not found`,
+      );
+    });
   });
 
-  //   describe('GET /contacts/:id', () => {
-  //     let contactId: string;
+  describe('POST /contacts', () => {
+    it('should create contact when none exists, then find it', async () => {
+      // First verify no contacts exist
+      const emptyResponse = await request(app.getHttpServer())
+        .get('/contacts')
+        .set(mockAuthHeaders)
+        .expect(200);
 
-  //     beforeEach(async () => {
-  //       const contact = await prisma.contact.create({
-  //         data: {
-  //           name: 'Test Contact',
-  //           email: 'test@example.com',
-  //           userId: testUserId,
-  //         },
-  //       });
-  //       contactId = contact.id;
-  //     });
+      expect(emptyResponse.body).toHaveLength(0);
 
-  //     it('should return contact by id', async () => {
-  //       const response = await request(app.getHttpServer())
-  //         .get(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(200);
+      // Create a contact
+      const createContactDto = {
+        name: 'John Doe',
+        email: 'john@example.com',
+        company: 'Test Corp',
+      };
 
-  //       expect(response.body).toMatchObject({
-  //         id: contactId,
-  //         name: 'Test Contact',
-  //         email: 'test@example.com',
-  //         userId: testUserId,
-  //       });
-  //     });
+      const createResponse = await request(app.getHttpServer())
+        .post('/contacts')
+        .set(mockAuthHeaders)
+        .send(createContactDto)
+        .expect(201);
 
-  //     it('should return 404 when contact not found', async () => {
-  //       const nonExistentId = '123e4567-e89b-12d3-a456-426614174000';
+      expect(createResponse.body).toMatchObject({
+        id: expect.any(String),
+        name: 'John Doe',
+        email: 'john@example.com',
+        company: 'Test Corp',
+        userId: testUserId,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
 
-  //       const response = await request(app.getHttpServer())
-  //         .get(`/contacts/${nonExistentId}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(404);
+      testContactId = createResponse.body.id;
 
-  //       expect(response.body.message).toContain('not found');
-  //     });
+      // Now verify we can find it
+      const findResponse = await request(app.getHttpServer())
+        .get('/contacts')
+        .set(mockAuthHeaders)
+        .expect(200);
 
-  //     it('should return 400 when id is not a valid UUID', async () => {
-  //       await request(app.getHttpServer())
-  //         .get('/contacts/invalid-uuid')
-  //         .set(mockAuthHeaders)
-  //         .expect(400);
-  //     });
+      expect(findResponse.body).toHaveLength(1);
+      expect(findResponse.body[0]).toMatchObject({
+        name: 'John Doe',
+        email: 'john@example.com',
+      });
+    });
+  });
 
-  //     it("should return 404 when trying to access another user's contact", async () => {
-  //       // Create contact for different user
-  //       const otherUserId = '11111111-1111-1111-1111-111111111111';
-  //       await prisma.user.upsert({
-  //         where: { id: otherUserId },
-  //         update: {},
-  //         create: { id: otherUserId, email: 'other@example.com' },
-  //       });
+  describe('PATCH /contacts/:id', () => {
+    it('should return 404 for non-existent contact', async () => {
+      const nonExistentId = '99999999-9999-9999-9999-999999999999';
+      const updateData = { name: 'Updated Name' };
 
-  //       const otherContact = await prisma.contact.create({
-  //         data: {
-  //           name: 'Other User Contact',
-  //           userId: otherUserId,
-  //         },
-  //       });
+      const response = await request(app.getHttpServer())
+        .patch(`/contacts/${nonExistentId}`)
+        .set(mockAuthHeaders)
+        .send(updateData)
+        .expect(404);
 
-  //       await request(app.getHttpServer())
-  //         .get(`/contacts/${otherContact.id}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(404);
-  //     });
-  //   });
+      expect(response.body.message).toContain(
+        `Contact with ID ${nonExistentId} not found`,
+      );
+    });
 
-  //   describe('PATCH /contacts/:id', () => {
-  //     let contactId: string;
+    it('should update contact and persist changes', async () => {
+      // Create a contact
+      const contact = await prisma.contact.create({
+        data: {
+          name: 'Original Name',
+          email: 'original@example.com',
+          userId: testUserId,
+        },
+      });
 
-  //     beforeEach(async () => {
-  //       const contact = await prisma.contact.create({
-  //         data: {
-  //           name: 'Original Name',
-  //           email: 'original@example.com',
-  //           phone: '+1111111111',
-  //           company: 'Original Corp',
-  //           title: 'Original Title',
-  //           userId: testUserId,
-  //         },
-  //       });
-  //       contactId = contact.id;
-  //     });
+      // Update it
+      const updateData = {
+        name: 'Updated Name',
+        company: 'New Company',
+      };
 
-  //     it('should update all fields', async () => {
-  //       const updateDto = {
-  //         name: 'Updated Name',
-  //         email: 'updated@example.com',
-  //         phone: '+2222222222',
-  //         company: 'Updated Corp',
-  //         title: 'Updated Title',
-  //       };
+      const patchResponse = await request(app.getHttpServer())
+        .patch(`/contacts/${contact.id}`)
+        .set(mockAuthHeaders)
+        .send(updateData)
+        .expect(200);
 
-  //       const response = await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send(updateDto)
-  //         .expect(200);
+      expect(patchResponse.body).toMatchObject({
+        id: contact.id,
+        name: 'Updated Name',
+        email: 'original@example.com', // unchanged
+        company: 'New Company',
+        userId: testUserId,
+      });
 
-  //       expect(response.body).toMatchObject({
-  //         id: contactId,
-  //         ...updateDto,
-  //         userId: testUserId,
-  //       });
-  //     });
+      // Verify changes persisted by getting the contact
+      const getResponse = await request(app.getHttpServer())
+        .get(`/contacts/${contact.id}`)
+        .set(mockAuthHeaders)
+        .expect(200);
 
-  //     it('should update partial fields', async () => {
-  //       const updateDto = {
-  //         name: 'Partially Updated',
-  //         email: 'partial@example.com',
-  //       };
+      expect(getResponse.body).toMatchObject({
+        name: 'Updated Name',
+        company: 'New Company',
+      });
+    });
+  });
 
-  //       const response = await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send(updateDto)
-  //         .expect(200);
+  describe('DELETE /contacts/:id', () => {
+    it('should return 404 for non-existent contact', async () => {
+      const nonExistentId = '99999999-9999-9999-9999-999999999999';
 
-  //       expect(response.body).toMatchObject({
-  //         id: contactId,
-  //         name: 'Partially Updated',
-  //         email: 'partial@example.com',
-  //         phone: '+1111111111', // unchanged
-  //         company: 'Original Corp', // unchanged
-  //         title: 'Original Title', // unchanged
-  //       });
-  //     });
+      const response = await request(app.getHttpServer())
+        .delete(`/contacts/${nonExistentId}`)
+        .set(mockAuthHeaders)
+        .expect(404);
 
-  //     it('should update single field', async () => {
-  //       const updateDto = { name: 'Only Name Changed' };
+      expect(response.body.message).toContain(
+        `Contact with ID ${nonExistentId} not found`,
+      );
+    });
 
-  //       const response = await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send(updateDto)
-  //         .expect(200);
+    it('should delete contact and confirm removal', async () => {
+      // Create a contact
+      const contact = await prisma.contact.create({
+        data: {
+          name: 'To Be Deleted',
+          email: 'delete@example.com',
+          userId: testUserId,
+        },
+      });
 
-  //       expect(response.body.name).toBe('Only Name Changed');
-  //       expect(response.body.email).toBe('original@example.com');
-  //     });
+      // Delete it
+      const deleteResponse = await request(app.getHttpServer())
+        .delete(`/contacts/${contact.id}`)
+        .set(mockAuthHeaders)
+        .expect(200);
 
-  //     it('should clear optional fields when set to null', async () => {
-  //       const updateDto = {
-  //         email: null,
-  //         phone: null,
-  //         company: null,
-  //         title: null,
-  //       };
+      expect(deleteResponse.body).toMatchObject({
+        id: contact.id,
+        name: 'To Be Deleted',
+        email: 'delete@example.com',
+        userId: testUserId,
+      });
 
-  //       const response = await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send(updateDto)
-  //         .expect(200);
-
-  //       expect(response.body).toMatchObject({
-  //         id: contactId,
-  //         name: 'Original Name',
-  //         email: null,
-  //         phone: null,
-  //         company: null,
-  //         title: null,
-  //       });
-  //     });
-
-  //     it('should return 404 when contact not found', async () => {
-  //       const nonExistentId = '123e4567-e89b-12d3-a456-426614174000';
-
-  //       await request(app.getHttpServer())
-  //         .patch(`/contacts/${nonExistentId}`)
-  //         .set(mockAuthHeaders)
-  //         .send({ name: 'Updated Name' })
-  //         .expect(404);
-  //     });
-
-  //     it('should return 400 when email format is invalid', async () => {
-  //       await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send({ email: 'invalid-email' })
-  //         .expect(400);
-  //     });
-
-  //     it('should return 409 when email conflicts with existing contact', async () => {
-  //       // Create another contact with different email
-  //       await prisma.contact.create({
-  //         data: {
-  //           name: 'Another Contact',
-  //           email: 'conflict@example.com',
-  //           userId: testUserId,
-  //         },
-  //       });
-
-  //       // Try to update original contact to use conflicting email
-  //       await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send({ email: 'conflict@example.com' })
-  //         .expect(409);
-  //     });
-
-  //     it('should allow updating to same email (no conflict)', async () => {
-  //       const response = await request(app.getHttpServer())
-  //         .patch(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .send({ email: 'original@example.com' })
-  //         .expect(200);
-
-  //       expect(response.body.email).toBe('original@example.com');
-  //     });
-  //   });
-
-  //   describe('DELETE /contacts/:id', () => {
-  //     let contactId: string;
-
-  //     beforeEach(async () => {
-  //       const contact = await prisma.contact.create({
-  //         data: {
-  //           name: 'To Be Deleted',
-  //           email: 'delete@example.com',
-  //           userId: testUserId,
-  //         },
-  //       });
-  //       contactId = contact.id;
-  //     });
-
-  //     it('should delete contact', async () => {
-  //       const response = await request(app.getHttpServer())
-  //         .delete(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(200);
-
-  //       expect(response.body).toMatchObject({
-  //         id: contactId,
-  //         name: 'To Be Deleted',
-  //         email: 'delete@example.com',
-  //       });
-
-  //       // Verify contact is actually deleted
-  //       const deletedContact = await prisma.contact.findUnique({
-  //         where: { id: contactId },
-  //       });
-  //       expect(deletedContact).toBeNull();
-  //     });
-
-  //     it('should return 404 when contact not found', async () => {
-  //       const nonExistentId = '123e4567-e89b-12d3-a456-426614174000';
-
-  //       await request(app.getHttpServer())
-  //         .delete(`/contacts/${nonExistentId}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(404);
-  //     });
-
-  //     it('should delete contact and associated notes', async () => {
-  //       // Add notes to the contact
-  //       await prisma.note.createMany({
-  //         data: [
-  //           {
-  //             title: 'Note 1',
-  //             body: 'Content 1',
-  //             contactId: contactId,
-  //           },
-  //           {
-  //             title: 'Note 2',
-  //             body: 'Content 2',
-  //             contactId: contactId,
-  //           },
-  //         ],
-  //       });
-
-  //       // Delete contact
-  //       await request(app.getHttpServer())
-  //         .delete(`/contacts/${contactId}`)
-  //         .set(mockAuthHeaders)
-  //         .expect(200);
-
-  //       // Verify notes are also deleted (cascade)
-  //       const notes = await prisma.note.findMany({
-  //         where: { contactId: contactId },
-  //       });
-  //       expect(notes).toHaveLength(0);
-  //     });
-
-  //     it('should return 400 when id is not a valid UUID', async () => {
-  //       await request(app.getHttpServer())
-  //         .delete('/contacts/invalid-uuid')
-  //         .set(mockAuthHeaders)
-  //         .expect(400);
-  //     });
-  //   });
+      // Verify it's gone by trying to get it
+      await request(app.getHttpServer())
+        .get(`/contacts/${contact.id}`)
+        .set(mockAuthHeaders)
+        .expect(404);
+    });
+  });
 });

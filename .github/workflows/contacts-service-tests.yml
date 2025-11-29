@@ -68,7 +68,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mini_crm_test?schema=public
 
       - name: Run integration tests
-        run: npm test
+        run: npm run test:cov
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mini_crm_test?schema=public
@@ -80,5 +80,4 @@ jobs:
           name: test-results
           path: |
             apps/contacts-service/coverage/
-            apps/contacts-service/test-results.xml
           retention-days: 5

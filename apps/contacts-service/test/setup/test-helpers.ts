@@ -28,7 +28,8 @@ export class MockSupabaseAuthGuard implements CanActivate {
  */
 export const TEST_CONFIG = {
   // Test user ID - matches what's seeded in the database
-  TEST_USER_ID: '00000000-0000-0000-0000-000000000001',
+  TEST_CONTACTS_USER_ID: '00000000-0000-0000-0000-000000000001',
+  TEST_NOTES_USER_ID: '00000000-0000-0000-0000-000000000002',
   // Safe test API key (not a real production key)
   TEST_API_KEY: 'test-api-key-for-integration-tests-only',
 };
@@ -36,8 +37,8 @@ export const TEST_CONFIG = {
 /**
  * Standard mock auth headers for integration tests
  */
-export const createMockAuthHeaders = (userId?: string) => ({
-  'x-user-id': userId || TEST_CONFIG.TEST_USER_ID,
+export const createMockAuthHeaders = (userId: string) => ({
+  'x-user-id': userId,
   'api-key': TEST_CONFIG.TEST_API_KEY,
 });
 
