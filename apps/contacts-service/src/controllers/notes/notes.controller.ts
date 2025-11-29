@@ -9,18 +9,25 @@ import {
   NotFoundException,
   Req,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
 import { CreateNoteDto } from './dto/create-note-body.dto';
 import { UpdateNoteDto } from './dto/update-note-body.dto';
 import { NotesService } from './notes.service';
-import { UuidParam, AuthorizedRequest } from '@mini-crm/shared';
+import {
+  UuidParam,
+  AuthorizedRequest,
+  ApiKeyGuard,
+  SupabaseAuthGuard,
+} from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
 import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
-import { PublishEvent } from '../../decorators/publish-event.decorator';
+import { PublishEvent } from '../../lib/decorators/publish-event.decorator';
 
 @Controller('notes')
+@UseGuards(ApiKeyGuard, SupabaseAuthGuard)
 @UseInterceptors(EventsPublisherInterceptor)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}

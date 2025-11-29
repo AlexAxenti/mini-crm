@@ -6,13 +6,19 @@ import {
   Req,
   ConflictException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user-body.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { AuthorizedRequest } from '@mini-crm/shared';
+import {
+  AuthorizedRequest,
+  ApiKeyGuard,
+  SupabaseAuthGuard,
+} from '@mini-crm/shared';
 
 @Controller('users')
+@UseGuards(ApiKeyGuard, SupabaseAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

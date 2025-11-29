@@ -24,6 +24,11 @@
       "generated/*": ["./generated/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "prisma/seed.ts",
+    "jest.config.integration.ts",
+    "test/**/*"
+  ],
   "exclude": ["node_modules", "dist", "generated"]
 }
