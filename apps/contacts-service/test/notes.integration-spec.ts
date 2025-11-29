@@ -50,7 +50,7 @@ describe('NotesController Integration', () => {
     await prisma.user.upsert({
       where: { id: testUserId },
       update: {},
-      create: { id: testUserId, email: 'test@example.com' },
+      create: { id: testUserId, email: 'test_notes@example.com' },
     });
   });
 
