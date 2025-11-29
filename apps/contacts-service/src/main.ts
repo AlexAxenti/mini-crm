@@ -6,6 +6,9 @@ import { GlobalExceptionFilter } from '@mini-crm/shared';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  console.log('db', process.env.DATABASE_URL);
+  console.log('env', process.env);
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
