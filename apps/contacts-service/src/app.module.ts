@@ -4,7 +4,7 @@ import { ContactsModule } from './controllers/contacts/contacts.module';
 import { NotesModule } from './controllers/notes/notes.module';
 import { UsersModule } from './controllers/users/users.module';
 import { HealthModule } from './controllers/health/health.module';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from './services/prisma.service';
 import { EventsClientService } from './services/events-client.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
 
