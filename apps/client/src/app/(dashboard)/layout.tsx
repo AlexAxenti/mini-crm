@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeSelect } from "@/components/ThemeSelect";
+import { HealthStatusIndicator } from "@/components/HealthStatusIndicator";
 
 export default function DashboardLayout({
   children,
@@ -30,6 +31,7 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            <HealthStatusIndicator />
             <ThemeSelect />
             <Link
               href="/logout"
