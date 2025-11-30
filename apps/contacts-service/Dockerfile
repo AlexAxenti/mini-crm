@@ -18,7 +18,7 @@ RUN npm run prisma:generate
 RUN npm run build
 
 # Expose the Nest contacts-service port
-EXPOSE 3001
+EXPOSE 3000
 
 # Run the production build
 CMD ["npm", "run", "start:prod"]

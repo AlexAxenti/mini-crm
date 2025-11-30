@@ -2,6 +2,9 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import pg from 'pg';
+import { config } from 'dotenv';
+
+config();
 
 @Injectable()
 export class PrismaService
@@ -16,7 +19,7 @@ export class PrismaService
 
     super({
       adapter,
-      log: ['query', 'info', 'warn', 'error'],
+      log: ['error'],
     });
   }
 
