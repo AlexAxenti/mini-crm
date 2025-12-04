@@ -4,12 +4,20 @@ import { ContactsModule } from './controllers/contacts/contacts.module';
 import { NotesModule } from './controllers/notes/notes.module';
 import { UsersModule } from './controllers/users/users.module';
 import { HealthModule } from './controllers/health/health.module';
-import { PrismaService } from './services/prisma.service';
-import { EventsClientService } from './services/events-client.service';
+import { PrismaService } from './infra/prisma.service';
+import { EventsClientService } from './infra/events-client.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
+import { RedisModule } from './infra/redis.module';
 
 @Module({
-  imports: [HttpModule, ContactsModule, NotesModule, UsersModule, HealthModule],
+  imports: [
+    HttpModule,
+    RedisModule,
+    ContactsModule,
+    NotesModule,
+    UsersModule,
+    HealthModule,
+  ],
   controllers: [],
   providers: [PrismaService, EventsClientService],
   exports: [EventsClientService],

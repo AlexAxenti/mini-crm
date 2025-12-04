@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { Redis } from '@upstash/redis';
 import { ContactsRepository } from './contacts.repository';
 import { GetContactsQueryDto } from './dto/get-contacts-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
@@ -8,12 +9,22 @@ import { UpdateContactDto } from './dto/update-contact-body.dto';
 
 @Injectable()
 export class ContactsService {
-  constructor(private readonly contactsRepository: ContactsRepository) {}
+  constructor(
+    private readonly contactsRepository: ContactsRepository,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
 
   async getContacts(
     userId: string,
     query: GetContactsQueryDto,
   ): Promise<ContactResponseDto[]> {
+    const cacheKey = `contacts:${userId}:${JSON.stringify(query)}`;
+
+    const cached = await this.redis.get<ContactResponseDto[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const { name, email, phone, company, title, sortBy, order } = query;
 
     // Build where clause for filtering
@@ -34,14 +45,36 @@ export class ContactsService {
       orderBy.name = 'asc';
     }
 
-    return this.contactsRepository.findMany(userId, where, orderBy);
+    const contacts = await this.contactsRepository.findMany(
+      userId,
+      where,
+      orderBy,
+    );
+
+    // Cache for 5 minutes
+    await this.redis.set(cacheKey, contacts, { ex: 300 });
+
+    return contacts;
   }
 
   async getContact(
     userId: string,
     id: string,
   ): Promise<ContactResponseDto | null> {
-    return this.contactsRepository.findById(userId, id);
+    const cacheKey = `contact:${userId}:${id}`;
+
+    const cached = await this.redis.get<ContactResponseDto>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const contact = await this.contactsRepository.findById(userId, id);
+
+    if (contact) {
+      await this.redis.set(cacheKey, contact, { ex: 300 });
+    }
+
+    return contact;
   }
 
   async createContact(
@@ -59,7 +92,11 @@ export class ContactsService {
       },
     };
 
-    return this.contactsRepository.create(userId, data);
+    const contact = await this.contactsRepository.create(userId, data);
+
+    await this.invalidateContactsCaches(userId);
+
+    return contact;
   }
 
   async updateContact(
@@ -76,7 +113,12 @@ export class ContactsService {
       ...dto,
     };
 
-    return this.contactsRepository.update(id, data);
+    const contact = await this.contactsRepository.update(id, data);
+
+    await this.invalidateContactsCaches(userId);
+    await this.redis.del(`contact:${userId}:${id}`);
+
+    return contact;
   }
 
   async deleteContact(
@@ -88,6 +130,18 @@ export class ContactsService {
       return null;
     }
 
-    return this.contactsRepository.delete(id);
+    const contact = await this.contactsRepository.delete(id);
+
+    await this.invalidateContactsCaches(userId);
+    await this.redis.del(`contact:${userId}:${id}`);
+
+    return contact;
+  }
+
+  private async invalidateContactsCaches(userId: string): Promise<void> {
+    const keys = await this.redis.keys(`contacts:${userId}:*`);
+    if (keys.length > 0) {
+      await this.redis.del(...keys);
+    }
   }
 }

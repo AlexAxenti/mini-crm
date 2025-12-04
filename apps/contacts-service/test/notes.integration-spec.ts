@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/services/prisma.service';
+import { PrismaService } from '../src/infra/prisma.service';
 import {
   setupMockGuards,
   createMockAuthHeaders,
@@ -229,8 +224,6 @@ describe('NotesController Integration', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
-
-      testNoteId = createResponse.body.id;
 
       // Now verify we can find it
       const findResponse = await request(app.getHttpServer())

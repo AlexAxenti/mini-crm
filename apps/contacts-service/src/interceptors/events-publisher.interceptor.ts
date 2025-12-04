@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { EventsClientService } from '../services/events-client.service';
+import { EventsClientService } from '../infra/events-client.service';
 import {
   PUBLISH_EVENT_KEY,
   PublishEventMetadata,
