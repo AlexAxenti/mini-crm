@@ -44,10 +44,7 @@ export async function proxy(
   }
 
   // 3. Get service configuration
-  console.log("service:", service);
   const config = getServiceConfig(service);
-  console.log("Service config:", config);
-  console.log("Proxying request to:", config.url + path);
   const targetUrl = `${config.url}${path}`;
 
   // 4. Prepare headers
