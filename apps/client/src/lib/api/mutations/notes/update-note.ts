@@ -34,6 +34,7 @@ export const useUpdateNote = () => {
       queryClient.invalidateQueries({
         queryKey: ["notes", variables.contactId],
       });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 };

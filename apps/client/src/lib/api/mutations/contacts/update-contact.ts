@@ -32,6 +32,7 @@ export const useUpdateContact = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["contact", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 };

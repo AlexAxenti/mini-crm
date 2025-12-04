@@ -20,6 +20,7 @@ export const useDeleteContact = () => {
       queryClient.invalidateQueries({ queryKey: ["contact", deletedId] });
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
       queryClient.removeQueries({ queryKey: ["contact", deletedId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 };
