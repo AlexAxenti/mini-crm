@@ -23,8 +23,8 @@ import {
   SupabaseAuthGuard,
 } from '@mini-crm/shared';
 import { Prisma } from '@prisma/client';
-import { EventsPublisherInterceptor } from '../../interceptors/events-publisher.interceptor';
-import { PublishEvent } from '../../lib/decorators/publish-event.decorator';
+import { EventsPublisherInterceptor } from '../../common/interceptors/events-publisher.interceptor';
+import { PublishEvent } from '../../common/decorators/publish-event.decorator';
 
 @Controller('notes')
 @UseGuards(ApiKeyGuard, SupabaseAuthGuard)

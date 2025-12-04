@@ -7,12 +7,12 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { EventsClientService } from '../infra/events-client.service';
+import { EventsClientService } from '../../infra/events-client.service';
 import {
   PUBLISH_EVENT_KEY,
   PublishEventMetadata,
   DEFAULT_META_EXTRACTORS,
-} from '../lib/decorators/publish-event.decorator';
+} from '../decorators/publish-event.decorator';
 import { AuthorizedRequest } from '@mini-crm/shared';
 
 @Injectable()
