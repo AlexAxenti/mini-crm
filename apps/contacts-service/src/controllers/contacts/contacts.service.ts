@@ -51,7 +51,6 @@ export class ContactsService {
       orderBy,
     );
 
-    // Cache for 5 minutes
     await this.redis.set(cacheKey, contacts, { ex: 300 });
 
     return contacts;
