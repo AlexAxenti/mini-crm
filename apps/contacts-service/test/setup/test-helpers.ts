@@ -56,6 +56,35 @@ export class TestAuthMiddleware {
 }
 
 /**
+ * Mock Redis client for testing
+ */
+export class MockRedisClient {
+  private cache: Map<string, any> = new Map();
+
+  async get<T>(key: string): Promise<T | null> {
+    return this.cache.get(key) || null;
+  }
+
+  async set(key: string, value: any, options?: { ex?: number }): Promise<void> {
+    this.cache.set(key, value);
+  }
+
+  async del(...keys: string[]): Promise<void> {
+    keys.forEach((key) => this.cache.delete(key));
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+    return Array.from(this.cache.keys()).filter((key) => regex.test(key));
+  }
+
+  // Helper method to clear all cache between tests
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+/**
  * Setup function to override guards and add test middleware
  */
 export const setupMockGuards = (moduleBuilder: any) => {
@@ -63,5 +92,7 @@ export const setupMockGuards = (moduleBuilder: any) => {
     .overrideGuard(ApiKeyGuard)
     .useClass(MockApiKeyGuard)
     .overrideGuard(SupabaseAuthGuard)
-    .useClass(MockSupabaseAuthGuard);
+    .useClass(MockSupabaseAuthGuard)
+    .overrideProvider('REDIS_CLIENT')
+    .useClass(MockRedisClient);
 };
