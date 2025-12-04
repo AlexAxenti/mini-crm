@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/services/prisma.service';
+import { PrismaService } from '../src/infra/prisma.service';
 import {
   setupMockGuards,
   createMockAuthHeaders,
   TEST_CONFIG,
+  MockRedisClient,
 } from './setup/test-helpers';
 
 describe('ContactsController Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let redis: MockRedisClient;
   let testUserId: string;
   let mockAuthHeaders: Record<string, string>;
 
@@ -42,6 +39,7 @@ describe('ContactsController Integration', () => {
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+    redis = moduleFixture.get<MockRedisClient>('REDIS_CLIENT');
     testUserId = TEST_CONFIG.TEST_CONTACTS_USER_ID;
     mockAuthHeaders = createMockAuthHeaders(testUserId);
 
@@ -63,6 +61,8 @@ describe('ContactsController Integration', () => {
       where: { contact: { userId: testUserId } },
     });
     await prisma.contact.deleteMany({ where: { userId: testUserId } });
+
+    redis.clear();
   });
 
   describe('GET /contacts', () => {
@@ -235,8 +235,6 @@ describe('ContactsController Integration', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
-
-      testContactId = createResponse.body.id;
 
       // Now verify we can find it
       const findResponse = await request(app.getHttpServer())
