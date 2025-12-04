@@ -25,6 +25,7 @@ export const useDeleteNote = () => {
       queryClient.invalidateQueries({
         queryKey: ["notes", variables.contactId],
       });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 };

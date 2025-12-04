@@ -24,6 +24,7 @@ export const useCreateContact = () => {
     mutationFn: createContact,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 };
