@@ -7,11 +7,13 @@ import {
   setupMockGuards,
   createMockAuthHeaders,
   TEST_CONFIG,
+  MockRedisClient,
 } from './setup/test-helpers';
 
 describe('ContactsController Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let redis: MockRedisClient;
   let testUserId: string;
   let mockAuthHeaders: Record<string, string>;
 
@@ -37,6 +39,7 @@ describe('ContactsController Integration', () => {
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+    redis = moduleFixture.get<MockRedisClient>('REDIS_CLIENT');
     testUserId = TEST_CONFIG.TEST_CONTACTS_USER_ID;
     mockAuthHeaders = createMockAuthHeaders(testUserId);
 
@@ -58,6 +61,8 @@ describe('ContactsController Integration', () => {
       where: { contact: { userId: testUserId } },
     });
     await prisma.contact.deleteMany({ where: { userId: testUserId } });
+
+    redis.clear();
   });
 
   describe('GET /contacts', () => {
