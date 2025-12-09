@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { UserResponseDto } from "@/app/api-lib/queries/user/get-user";
+import { UserResponseDto } from "@/app/api/user/dto";
 
 interface LoginParams {
   email: string;

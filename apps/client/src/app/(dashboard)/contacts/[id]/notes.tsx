@@ -1,18 +1,13 @@
 import { useState } from "react";
-import {
-  useGetNotes,
-  NoteResponseDto,
-  SortOrder,
-} from "@/lib/api/queries/notes/get-notes";
-import {
-  useCreateNote,
-  CreateNoteDto,
-} from "@/lib/api/mutations/notes/create-note";
-import {
-  useUpdateNote,
-  UpdateNoteDto,
-} from "@/lib/api/mutations/notes/update-note";
+import { useGetNotes, SortOrder } from "@/lib/api/queries/notes/get-notes";
+import { useCreateNote } from "@/lib/api/mutations/notes/create-note";
+import { useUpdateNote } from "@/lib/api/mutations/notes/update-note";
 import { useDeleteNote } from "@/lib/api/mutations/notes/delete-note";
+import {
+  NoteResponseDto,
+  CreateNoteDto,
+  UpdateNoteDto,
+} from "@/app/api/notes/dto";
 
 interface NotesProps {
   contactId: string;
@@ -215,8 +210,8 @@ const Notes = ({ contactId }: NotesProps) => {
                         ? "Creating..."
                         : "Create Note"
                       : updateNoteMutation.isPending
-                        ? "Saving..."
-                        : "Save Changes"}
+                      ? "Saving..."
+                      : "Save Changes"}
                   </button>
                 </div>
               </div>
