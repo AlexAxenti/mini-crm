@@ -4,6 +4,10 @@ This project explores a gateway-based full-stack architecture using Next.js as t
 
 The focus was not just building features, but to intentionally experiment with real-world technologies, architectural patterns, and production tradeoffs commonly found in modern web systems.
 
+## Architecture Overview
+
+![High-level system architecture diagram](docs/Architecture.png)
+
 ## Tech Stack
 
 ### Frontend / Gateway
