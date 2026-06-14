@@ -2,9 +2,24 @@ import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
-  HttpException,
 } from "@nestjs/common";
 import { Request, Response } from "express";
+
+type HttpExceptionLike = {
+  getStatus: () => number;
+  getResponse: () => string | object;
+};
+
+function isHttpExceptionLike(exception: unknown): exception is HttpExceptionLike {
+  return (
+    typeof exception === "object" &&
+    exception !== null &&
+    "getStatus" in exception &&
+    "getResponse" in exception &&
+    typeof (exception as HttpExceptionLike).getStatus === "function" &&
+    typeof (exception as HttpExceptionLike).getResponse === "function"
+  );
+}
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -13,20 +28,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : 500;
+    const isHttpException = isHttpExceptionLike(exception);
+    const status = isHttpException ? exception.getStatus() : 500;
 
     let message: string | object;
 
-    if (exception instanceof HttpException) {
-      const response = exception.getResponse();
+    if (isHttpException) {
+      const exceptionResponse = exception.getResponse();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       message =
-        typeof response === "string"
-          ? response
+        typeof exceptionResponse === "string"
+          ? exceptionResponse
           : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            (response as any).message || response;
-      console.log(response);
+            (exceptionResponse as any).message || exceptionResponse;
+      console.log(exceptionResponse);
     } else {
       message = "Internal server error";
       console.log(exception);
