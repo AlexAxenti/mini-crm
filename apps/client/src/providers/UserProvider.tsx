@@ -1,6 +1,7 @@
 "use client";
 
-import { useGetUser, UserResponseDto } from "@/lib/api/queries/user/get-user";
+import { useGetUser } from "@/lib/api/queries/user/get-user";
+import { UserResponseDto } from "@/app/api/user/dto";
 import { createContext, useContext, ReactNode } from "react";
 
 interface UserContextType {

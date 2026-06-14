@@ -8,7 +8,7 @@ COPY . .
 
 # 1) Build the shared package
 WORKDIR /app/packages/shared
-RUN npm install
+RUN npm install --package-lock=false
 RUN npm run build
 
 # 2) Build the events-service

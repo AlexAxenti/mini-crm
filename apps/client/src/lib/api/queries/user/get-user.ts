@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { throwApiError } from "../../util/throw-api-error";
-
-export interface UserResponseDto {
-  id: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { UserResponseDto } from "@/app/api/user/dto";
 
 const fetchUser = async (): Promise<UserResponseDto> => {
   const res = await fetch("/api/user");

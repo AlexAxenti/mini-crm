@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { throwApiError } from "../../util/throw-api-error";
-import { NoteResponseDto } from "@/app/api/notes/dto";
+import { NoteResponseDto } from "../../../../app/api/notes/dto";
 
 export type SortOrder = "newest" | "oldest";
 
