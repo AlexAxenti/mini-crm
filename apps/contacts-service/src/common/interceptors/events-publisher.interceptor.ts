@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { EventsClientService } from '../../infra/events-client.service';
+import { KafkaEventPublisherService } from '../../infra/kafka-event-publisher.service';
 import {
   PUBLISH_EVENT_KEY,
   PublishEventMetadata,
@@ -20,6 +21,7 @@ export class EventsPublisherInterceptor implements NestInterceptor {
   constructor(
     private readonly reflector: Reflector,
     private readonly eventsClient: EventsClientService,
+    private readonly kafkaEventPublisher: KafkaEventPublisherService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -56,6 +58,14 @@ export class EventsPublisherInterceptor implements NestInterceptor {
             entityType: metadata.entityType,
             entityId: data.id as string,
             supabaseToken,
+            meta,
+          });
+
+          this.kafkaEventPublisher.publishEvent({
+            eventType: metadata.eventType,
+            entityType: metadata.entityType,
+            entityId: data.id as string,
+            userId: request.userId,
             meta,
           });
         }

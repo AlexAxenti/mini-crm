@@ -8,6 +8,8 @@ import { PrismaService } from './infra/prisma.service';
 import { EventsClientService } from './infra/events-client.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
 import { RedisModule } from './infra/redis.module';
+import { KafkaSmokePublisherService } from './infra/kafka-smoke-publisher.service';
+import { KafkaEventsModule } from './infra/kafka-events.module';
 
 @Module({
   imports: [
@@ -17,9 +19,10 @@ import { RedisModule } from './infra/redis.module';
     NotesModule,
     UsersModule,
     HealthModule,
+    KafkaEventsModule,
   ],
   controllers: [],
-  providers: [PrismaService, EventsClientService],
+  providers: [PrismaService, EventsClientService, KafkaSmokePublisherService],
   exports: [EventsClientService],
 })
 export class AppModule implements NestModule {

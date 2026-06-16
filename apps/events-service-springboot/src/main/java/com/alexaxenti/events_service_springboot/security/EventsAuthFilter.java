@@ -30,11 +30,10 @@ public class EventsAuthFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventsAuthFilter.class);
 
     private final EventsProperties properties;
-    private final ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
+    private volatile ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
     public EventsAuthFilter(EventsProperties properties) {
         this.properties = properties;
-        this.jwtProcessor = createJwtProcessor(properties);
     }
 
     @Override
@@ -77,7 +76,7 @@ public class EventsAuthFilter extends OncePerRequestFilter {
         }
 
         try {
-            JWTClaimsSet claims = jwtProcessor.process(token, null);
+            JWTClaimsSet claims = getJwtProcessor().process(token, null);
             String userId = claims.getSubject();
             if (userId == null || userId.isBlank()) {
                 LOGGER.warn("Unauthorized events request: token missing subject");
@@ -101,6 +100,20 @@ public class EventsAuthFilter extends OncePerRequestFilter {
             );
             unauthorized(request, response, "Authentication failed");
         }
+    }
+
+    private ConfigurableJWTProcessor<SecurityContext> getJwtProcessor() {
+        ConfigurableJWTProcessor<SecurityContext> processor = jwtProcessor;
+        if (processor == null) {
+            synchronized (this) {
+                processor = jwtProcessor;
+                if (processor == null) {
+                    processor = createJwtProcessor(properties);
+                    jwtProcessor = processor;
+                }
+            }
+        }
+        return processor;
     }
 
     private static ConfigurableJWTProcessor<SecurityContext> createJwtProcessor(EventsProperties properties) {
