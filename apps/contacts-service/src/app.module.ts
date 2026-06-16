@@ -1,19 +1,15 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
 import { ContactsModule } from './controllers/contacts/contacts.module';
 import { NotesModule } from './controllers/notes/notes.module';
 import { UsersModule } from './controllers/users/users.module';
 import { HealthModule } from './controllers/health/health.module';
 import { PrismaService } from './infra/prisma.service';
-import { EventsClientService } from './infra/events-client.service';
 import { LoggerMiddleware } from '@mini-crm/shared';
 import { RedisModule } from './infra/redis.module';
-import { KafkaSmokePublisherService } from './infra/kafka-smoke-publisher.service';
 import { KafkaEventsModule } from './infra/kafka-events.module';
 
 @Module({
   imports: [
-    HttpModule,
     RedisModule,
     ContactsModule,
     NotesModule,
@@ -22,8 +18,7 @@ import { KafkaEventsModule } from './infra/kafka-events.module';
     KafkaEventsModule,
   ],
   controllers: [],
-  providers: [PrismaService, EventsClientService, KafkaSmokePublisherService],
-  exports: [EventsClientService],
+  providers: [PrismaService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
